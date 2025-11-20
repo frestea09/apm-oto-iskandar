@@ -37,17 +37,21 @@ $btnRunPengisian = GUICtrlCreateButton("2. Isi Data Sidik Jari (Registrasi)", 50
 GUICtrlSetFont($btnRunPengisian, 16, 800)
 GUICtrlSetTip($btnRunPengisian, "Klik untuk mengisi data sidik jari BPJS")
 
+; Tombol untuk
+$btnRunTiket = GUICtrlCreateButton("3. Print Tiket", 50, 600, @DesktopWidth - 100, 80)
+GUICtrlSetFont($btnRunTiket, 16, 800)
+
 ; Label instruksi tambahan
-GUICtrlCreateLabel("Pastikan Anda memiliki kartu BPJS dan siap untuk verifikasi wajah atau sidik jari.", 50, 600, @DesktopWidth - 100, 50)
+GUICtrlCreateLabel("Pastikan Anda memiliki kartu BPJS dan siap untuk verifikasi wajah atau sidik jari.", 50, 700, @DesktopWidth - 100, 50)
 GUICtrlSetFont(-1, 14, 400)
 
 ; Tombol Keluar (ditempatkan di bawah)
-$btnExit = GUICtrlCreateButton("Keluar", 50, 670, @DesktopWidth - 100, 80)
+$btnExit = GUICtrlCreateButton("Keluar", 50, 750, @DesktopWidth - 100, 60)
 GUICtrlSetFont($btnExit, 16, 800)
 GUICtrlSetTip($btnExit, "Klik untuk menutup aplikasi")
 
 ; Footer: Label yang menjelaskan pembuat aplikasi
-GUICtrlCreateLabel("© 2025 SIMRS RSUD Otista Soreang", 50, @DesktopHeight - 80, @DesktopWidth - 100, 40)
+GUICtrlCreateLabel("© 2025 SIMRS RSUD Otista Soreang", 50, 820, @DesktopWidth - 100, 40)
 GUICtrlSetFont(-1, 14, 400) ; Font lebih kecil untuk footer, tapi masih mudah dibaca
 GUICtrlSetColor(-1, 0x808080) ; Warna abu-abu untuk footer agar tidak terlalu mencolok
 
@@ -157,7 +161,51 @@ While 1
         ; Pesan sukses
         MsgBox($MB_ICONINFORMATION, "Sukses", "Pengisian data sidik jari selesai. Terima kasih telah menggunakan layanan ini.")
     EndIf
+	If $nMsg = $btnRunTiket Then
+		; Membuka URL di Google Chrome
+		Run('C:\Program Files\Google\Chrome\Application\chrome.exe http://172.168.1.175:8070')
+		Sleep(3000)  ; Tunggu beberapa detik untuk memastikan halaman terbuka
 
+		; Menunggu jendela dengan judul "PENDAFTARAN ONLINE : RSUD OTISTA BANDUNG" aktif
+		WinWaitActive("PENDAFTARAN ONLINE : RSUD OTISTA BANDUNG - Google Chrome", "", 10)
+
+		; Klik tombol pendaftaran online (menggunakan koordinat yang diberikan)
+		MouseClick("left", 773, 209)  ; Koordinat untuk klik pada tombol pendaftaran
+		Sleep(2000)  ; Tunggu beberapa detik agar proses pendaftaran selesai
+
+		; Setelah proses pendaftaran selesai, menunggu jendela "Cetak Resume Pendaftaran Online"
+		WinWaitActive("Cetak Resume Pendaftaran Online - Google Chrome", "", 10)
+
+		; Tekan Ctrl + P untuk membuka dialog cetak
+		;Send("^p")
+		Sleep(3000)  ; Tunggu beberapa detik agar dialog cetak muncul
+
+		; Klik tombol Print di dialog (menggunakan koordinat yang diberikan)
+		MouseClick("left", 373, 332)  ; Koordinat untuk klik tombol Print
+		Sleep(2000)  ; Tunggu beberapa detik agar proses print selesai
+		WinClose("PENDAFTARAN ONLINE : RSUD OTISTA BANDUNG - Google Chrome")
+		; Kembali ke aplikasi (opsional, jika perlu)
+		; WinActivate("Frista (Face Recognition BPJS Kesehatan)")  ; Jika Anda perlu kembali ke aplikasi lain
+		MsgBox($MB_ICONINFORMATION, "Sukses", "Verifikasi wajah selesai. Silakan lanjutkan ke langkah berikutnya.")
+		; Membuka jendela Mesin Layanan BPJS
+		Run('C:\Path\to\BPJS_Layanan.exe')  ; Ganti dengan path yang sesuai ke aplikasi Mesin Layanan BPJS
+		Sleep(2000)  ; Tunggu beberapa detik untuk memastikan aplikasi terbuka
+
+		; Menunggu jendela dengan judul "Mesin Layanan BPJS - Mudah Digunakan" muncul
+		WinWait("Mesin Layanan BPJS - Mudah Digunakan", "", 10)
+
+		; Menempatkan jendela pada posisi yang diinginkan (misalnya posisi kiri atas layar)
+		WinMove("Mesin Layanan BPJS - Mudah Digunakan", "", 0, 0)  ; Menempatkan jendela di posisi (0, 0)
+
+		; Meminimalkan jendela tersebut
+		WinSetState("Mesin Layanan BPJS - Mudah Digunakan", "", @SW_MINIMIZE)  ; Meminimalkan jendela
+
+		; Memberikan waktu beberapa detik untuk meminimalkan jendela
+		Sleep(2000)
+
+		; Menampilkan kembali jendela yang telah diminimalkan
+		WinActivate("Mesin Layanan BPJS - Mudah Digunakan")  ; Mengaktifkan kembali jendela tersebut
+	EndIf
     ; Jika tombol Keluar diklik
     If $nMsg = $btnExit Or $nMsg = $GUI_EVENT_CLOSE Then
         Exit
