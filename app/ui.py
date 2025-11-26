@@ -12,9 +12,9 @@ class PatientApp:
     def __init__(self, root: tk.Tk):
         self.root = root
         self.root.title("Pencarian Pasien RSUD Oto Iskandar Dinata")
-        self.root.configure(background="#f7f8fa", padx=20, pady=20)
+        self.root.configure(background="#f7f8fa", padx=20, pady=20, height=5, width=5)
 
-        self.logo_image = tk.PhotoImage(file="assets/logo.png")
+        self.logo_image = tk.PhotoImage(file="assets/logo_dua.png")
         self.root.iconphoto(False, self.logo_image)
 
         self.no_rm_var = tk.StringVar()
