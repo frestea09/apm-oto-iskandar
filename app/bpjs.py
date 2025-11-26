@@ -22,6 +22,7 @@ class BpjsAutomationError(Exception):
 
 def _launch_application():
     subprocess.Popen([BPJS_EXECUTABLE])
+    pyautogui.sleep(1.5)
 
 
 def _login():

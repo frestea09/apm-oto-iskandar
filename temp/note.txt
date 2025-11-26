@@ -1,7 +1,0 @@
-conn = mysql.connector.connect(
-    host="172.168.1.2",      # IP server MySQL
-    user="root",             # Nama pengguna
-    password="s1mrs234@",    # Password
-    database="otista_dev",   # Nama database
-    port=3306                # Ganti dengan port yang ditemukan, jika berbeda
-)
