@@ -12,11 +12,14 @@ class PatientApp:
     def __init__(self, root: tk.Tk):
         self.root = root
         self.root.title("Pencarian Pasien RSUD Oto Iskandar Dinata")
-        self.root.configure(background="#f7f8fa", padx=20, pady=20)
+        self.root.configure(background="#f7f8fa", padx=20, pady=20, height=5, width=5)
+
+        self.logo_image = tk.PhotoImage(file="assets/logo_dua.png")
+        self.root.iconphoto(False, self.logo_image)
 
         self.no_rm_var = tk.StringVar()
         self.loading_var = tk.StringVar(value="")
-        self._digit_buttons: list[tk.Button] = []
+        self._keypad_buttons: list[tk.Button] = []
 
         self._build_inputs()
         self._build_status()
@@ -24,13 +27,19 @@ class PatientApp:
         self.refresh_status()
 
     def _build_inputs(self):
+        header = tk.Frame(self.root, bg="#f7f8fa")
+        header.pack(pady=(0, 6))
+
+        logo_label = tk.Label(header, image=self.logo_image, bg="#f7f8fa")
+        logo_label.pack(side=tk.LEFT, padx=(0, 10))
+
         title = tk.Label(
-            self.root,
+            header,
             text="Layanan Check-In Pasien",
             font=("Helvetica", 16, "bold"),
             bg="#f7f8fa",
         )
-        title.pack(pady=(0, 6))
+        title.pack(side=tk.LEFT)
 
         subtitle = tk.Label(
             self.root,
@@ -69,46 +78,39 @@ class PatientApp:
 
         keypad_frame = tk.Frame(self.root, bg="#f7f8fa")
         keypad_frame.pack(pady=5)
-        digits = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"]
-        for index, digit in enumerate(digits):
+
+        keypad_layout = [
+            ("1", self._append_digit),
+            ("2", self._append_digit),
+            ("3", self._append_digit),
+            ("4", self._append_digit),
+            ("5", self._append_digit),
+            ("6", self._append_digit),
+            ("7", self._append_digit),
+            ("8", self._append_digit),
+            ("9", self._append_digit),
+            ("Clear", self._clear_input),
+            ("0", self._append_digit),
+            ("Del", self._delete_last_digit),
+        ]
+
+        for index, (label, handler) in enumerate(keypad_layout):
+            is_action = label in {"Clear", "Del"}
+            bg_color = "#ffd6e0" if label == "Clear" else "#ffe8cc" if label == "Del" else "#ffffff"
             button = tk.Button(
                 keypad_frame,
-                text=digit,
-                width=6,
+                text=label,
+                width=8,
                 height=2,
                 font=("Helvetica", 12, "bold"),
-                bg="#ffffff",
-                command=lambda d=digit: self._append_digit(d),
+                bg=bg_color,
+                command=(lambda l=label, h=handler: h(l) if not is_action else h()),
             )
             button.grid(row=index // 3, column=index % 3, padx=4, pady=4, sticky="nsew")
-            self._digit_buttons.append(button)
+            self._keypad_buttons.append(button)
 
-        keypad_frame.grid_columnconfigure(0, weight=1)
-        keypad_frame.grid_columnconfigure(1, weight=1)
-        keypad_frame.grid_columnconfigure(2, weight=1)
-
-        control_frame = tk.Frame(self.root, bg="#f7f8fa")
-        control_frame.pack(pady=(8, 4))
-
-        self.delete_button = tk.Button(
-            control_frame,
-            text="Hapus Angka Terakhir",
-            width=18,
-            font=("Helvetica", 11, "bold"),
-            bg="#ffe8cc",
-            command=self._delete_last_digit,
-        )
-        self.delete_button.grid(row=0, column=0, padx=6, pady=4)
-
-        self.clear_button = tk.Button(
-            control_frame,
-            text="Bersihkan Input",
-            width=18,
-            font=("Helvetica", 11, "bold"),
-            bg="#ffd6e0",
-            command=self._clear_input,
-        )
-        self.clear_button.grid(row=0, column=1, padx=6, pady=4)
+        for column_index in range(3):
+            keypad_frame.grid_columnconfigure(column_index, weight=1)
 
         action_frame = tk.Frame(self.root, bg="#f7f8fa")
         action_frame.pack(pady=12)
@@ -244,9 +246,7 @@ class PatientApp:
         self.search_button.config(state=state)
         self.open_bpjs_button.config(state=state)
         self.open_checkin_portal_button.config(state=state)
-        self.delete_button.config(state=state)
-        self.clear_button.config(state=state)
-        for button in self._digit_buttons:
+        for button in self._keypad_buttons:
             button.config(state=state)
         self.root.update_idletasks()
 
