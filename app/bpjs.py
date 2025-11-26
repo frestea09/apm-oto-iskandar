@@ -76,15 +76,18 @@ def open_bpjs_for_identifier(identifier: str):
     if not identifier:
         raise BpjsAutomationError("Masukkan No RM, NIK, atau BPJS terlebih dahulu.")
 
-    registration: Optional[tuple]
-    patient: Optional[tuple]
+    registration: Optional[tuple] = None
+    patient: Optional[tuple] = None
 
-    if len(identifier) != 16:
-        registration = database.fetch_registration_by_no_rm(identifier)
-        patient = database.fetch_patient_by_no_rm(identifier)
-    else:
-        registration = database.fetch_registration_by_nik(identifier)
-        patient = database.fetch_patient_by_nik(identifier)
+    registration = database.fetch_registration_by_no_rm(identifier)
+    patient = database.fetch_patient_by_no_rm(identifier)
+
+    if len(identifier) == 16:
+        registration = registration or database.fetch_registration_by_nik(identifier)
+        patient = patient or database.fetch_patient_by_nik(identifier)
+
+    registration = registration or database.fetch_registration_by_bpjs(identifier)
+    patient = patient or database.fetch_patient_by_bpjs(identifier)
 
     if not registration and not patient:
         raise BpjsAutomationError("Data registrasi atau pasien tidak ditemukan.")
