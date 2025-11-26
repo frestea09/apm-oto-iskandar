@@ -1,169 +1,234 @@
-import configparser
-import subprocess
-import sys
-from pathlib import Path
 import tkinter as tk
-from tkinter import filedialog, messagebox
-
-DEFAULT_FRISTA_PATH = "frista.exe"
-DEFAULT_AFTER_PATH = r"C:\\Program Files (x86)\\BPJS Kesehatan\\Aplikasi Sidik Jari BPJS Kesehatan\\After.exe"
-SETTINGS_FILE = Path("settings.ini")
-
-
-def load_settings():
-    config = configparser.ConfigParser()
-    frista_path = DEFAULT_FRISTA_PATH
-    after_path = DEFAULT_AFTER_PATH
-
-    if SETTINGS_FILE.exists():
-        config.read(SETTINGS_FILE)
-        frista_path = config.get("Paths", "Frista", fallback=DEFAULT_FRISTA_PATH)
-        after_path = config.get("Paths", "After", fallback=DEFAULT_AFTER_PATH)
-
-    return frista_path, after_path
-
-
-def save_settings(frista_path: str, after_path: str) -> None:
-    config = configparser.ConfigParser()
-    config["Paths"] = {"Frista": frista_path, "After": after_path}
-    with SETTINGS_FILE.open("w", encoding="utf-8") as config_file:
-        config.write(config_file)
-
-
-def launch_executable(path: str, description: str) -> None:
+from tkinter import messagebox
+import mysql.connector
+import socket
+import os
+import subprocess  # Untuk menjalankan aplikasi eksternal
+import pyautogui  # Untuk otomatisasi keyboard
+# Fungsi untuk memeriksa koneksi internet
+def check_internet():
     try:
-        subprocess.Popen(path, shell=True)
-    except OSError as exc:
-        messagebox.showerror("Gagal", f"Tidak dapat membuka {description}: {exc}")
-    else:
-        messagebox.showinfo("Berhasil", f"{description} sedang dibuka…")
+        # Mencoba melakukan ping ke google.com untuk mengecek koneksi internet
+        socket.create_connection(("www.google.com", 80), timeout=5)
+        internet_status.config(text="Internet: Terhubung", fg="green")
+    except (socket.timeout, socket.error):
+        internet_status.config(text="Internet: Tidak Terhubung", fg="red")
 
-
-def open_settings(root: tk.Tk, frista_var: tk.StringVar, after_var: tk.StringVar) -> None:
-    window = tk.Toplevel(root)
-    window.title("Pengaturan Aplikasi")
-    window.geometry("500x220")
-
-    tk.Label(window, text="Frista Path:").grid(row=0, column=0, padx=10, pady=10, sticky="w")
-    frista_entry = tk.Entry(window, textvariable=frista_var, width=50)
-    frista_entry.grid(row=0, column=1, padx=10, pady=10)
-
-    tk.Label(window, text="After Path:").grid(row=1, column=0, padx=10, pady=10, sticky="w")
-    after_entry = tk.Entry(window, textvariable=after_var, width=50)
-    after_entry.grid(row=1, column=1, padx=10, pady=10)
-
-    def browse_file(var: tk.StringVar):
-        filepath = filedialog.askopenfilename(filetypes=[("Executable", "*.exe"), ("All files", "*.*")])
-        if filepath:
-            var.set(filepath)
-
-    tk.Button(window, text="Browse", command=lambda: browse_file(frista_var)).grid(row=0, column=2, padx=5, pady=10)
-    tk.Button(window, text="Browse", command=lambda: browse_file(after_var)).grid(row=1, column=2, padx=5, pady=10)
-
-    def save_and_close():
-        save_settings(frista_var.get(), after_var.get())
-        messagebox.showinfo("Sukses", "Pengaturan disimpan.")
-        window.destroy()
-
-    action_frame = tk.Frame(window)
-    action_frame.grid(row=3, column=0, columnspan=3, pady=20)
-    tk.Button(action_frame, text="Simpan", command=save_and_close, width=12).pack(side=tk.LEFT, padx=10)
-    tk.Button(action_frame, text="Batal", command=window.destroy, width=12).pack(side=tk.LEFT, padx=10)
-
-
-def main():
-    frista_path, after_path = load_settings()
-
-    root = tk.Tk()
-    root.title("Mesin Layanan BPJS - Mudah Digunakan")
-    root.configure(bg="white")
-    root.attributes("-fullscreen", True)
-
-    frista_var = tk.StringVar(value=frista_path)
-    after_var = tk.StringVar(value=after_path)
-
-    menubar = tk.Menu(root)
-    app_menu = tk.Menu(menubar, tearoff=0)
-    app_menu.add_command(label="Buka Aplikasi", command=lambda: launch_executable(frista_var.get(), "Aplikasi Frista"))
-    app_menu.add_command(label="Pengaturan Aplikasi", command=lambda: open_settings(root, frista_var, after_var))
-    menubar.add_cascade(label="Menu", menu=app_menu)
-    root.config(menu=menubar)
-
-    header = tk.Label(
-        root,
-        text="Selamat datang di Mesin Layanan BPJS. Ikuti langkah-langkah berikut:",
-        font=("Arial", 20, "bold"),
-        bg="white",
-    )
-    header.pack(pady=(30, 20))
-
-    tk.Label(root, text="Masukkan Nomor BPJS Anda:", font=("Arial", 16), bg="white").pack(pady=(10, 5))
-    bpjs_var = tk.StringVar()
-    bpjs_entry = tk.Entry(root, textvariable=bpjs_var, font=("Arial", 18), width=40)
-    bpjs_entry.pack(pady=(0, 20))
-
-    button_frame = tk.Frame(root, bg="white")
-    button_frame.pack(pady=20)
-
-    tk.Button(
-        button_frame,
-        text="Login dan Verifikasi Wajah (Frista)",
-        font=("Arial", 16, "bold"),
-        command=lambda: launch_executable(frista_var.get(), "Aplikasi Frista"),
-        width=40,
-        pady=10,
-    ).pack(pady=10)
-
-    tk.Button(
-        button_frame,
-        text="Isi Data Sidik Jari (Registrasi)",
-        font=("Arial", 16, "bold"),
-        command=lambda: launch_executable(after_var.get(), "Aplikasi After"),
-        width=40,
-        pady=10,
-    ).pack(pady=10)
-
-    tk.Button(
-        button_frame,
-        text="Print Tiket",
-        font=("Arial", 16, "bold"),
-        command=lambda: launch_executable(
-            r"C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe http://172.168.1.175:8070",
-            "Halaman Pendaftaran Online",
-        ),
-        width=40,
-        pady=10,
-    ).pack(pady=10)
-
-    tk.Label(
-        root,
-        text="Pastikan Anda memiliki kartu BPJS dan siap untuk verifikasi wajah atau sidik jari.",
-        font=("Arial", 14),
-        bg="white",
-    ).pack(pady=10)
-
-    tk.Button(
-        root,
-        text="Keluar",
-        font=("Arial", 16, "bold"),
-        command=root.destroy,
-        width=30,
-        pady=10,
-    ).pack(pady=20)
-
-    tk.Label(
-        root,
-        text="© 2025 SIMRS RSUD Otista Soreang",
-        font=("Arial", 14),
-        fg="#808080",
-        bg="white",
-    ).pack(pady=10)
-
-    root.mainloop()
-
-
-if __name__ == "__main__":
+# Fungsi untuk memeriksa koneksi MySQL
+def check_mysql_connection():
     try:
-        main()
-    except KeyboardInterrupt:
-        sys.exit(0)
+        # Coba untuk menghubungkan ke database MySQL
+        conn = mysql.connector.connect(
+            host="172.168.1.2",      # IP server MySQL
+            user="root",             # Nama pengguna
+            password="s1mrs234@",    # Password
+            database="otista_dev",   # Nama database
+            port=3306                # Ganti dengan port yang ditemukan, jika berbeda
+        )
+        conn.close()
+        db_status.config(text="Database: Tersedia", fg="green")
+    except mysql.connector.Error as err:
+        db_status.config(text="Database: Tidak Tersedia", fg="red")
+
+# Fungsi untuk melakukan pencarian pasien berdasarkan no_rm
+def search_patient():
+    # Ambil nomor rekam medis yang dimasukkan oleh pengguna
+    no_rm = entry_no_rm.get()
+
+    # Periksa apakah no_rm kosong
+    if not no_rm:
+        messagebox.showwarning("Input Error", "Nomor Rekam Medis (no_rm) tidak boleh kosong.")
+        return
+
+    try:
+        # Koneksi ke database MySQL
+        conn = mysql.connector.connect(
+            host="172.168.1.2",      # IP server MySQL
+            user="root",             # Nama pengguna
+            password="s1mrs234@",    # Password
+            database="otista_dev",   # Nama database
+            port=3306                # Ganti dengan port yang ditemukan, jika berbeda
+        )
+
+        cursor = conn.cursor()
+
+        # Query untuk mencari pasien berdasarkan no_rm
+        query = "SELECT * FROM pasiens WHERE no_rm = %s"
+        cursor.execute(query, (no_rm,))
+
+        # Ambil hasil pencarian
+        result = cursor.fetchone()
+
+        # Tampilkan hasil pencarian
+        if result:
+            print(result)
+            patient_info = f"Nama: {result[3]}\nTgl Lahir: {result[5]}\nAlamat: {result[7]}\nGolongan Darah: {result[8]}"
+            messagebox.showinfo("Hasil Pencarian", patient_info)
+        else:
+            messagebox.showinfo("Hasil Pencarian", "Pasien dengan No RM tersebut tidak ditemukan.")
+
+    except mysql.connector.Error as err:
+        messagebox.showerror("Database Error", f"Terjadi kesalahan: {err}")
+    finally:
+        # Menutup koneksi database
+        if conn.is_connected():
+            cursor.close()
+            conn.close()
+
+
+def open_bpjs_application():
+    
+    try:
+        
+        # Jalankan file executable (.exe)
+        subprocess.Popen(["C:\\Program Files (x86)\\BPJS Kesehatan\\Aplikasi Sidik Jari BPJS Kesehatan\\After.exe"])
+        no_rm = entry_no_rm.get()
+        conn = mysql.connector.connect(
+            host="172.168.1.2",      # IP server MySQL
+            user="root",             # Nama pengguna
+            password="s1mrs234@",    # Password
+            database="otista_dev",   # Nama database
+            port=3306                # Ganti dengan port yang ditemukan, jika berbeda
+        )
+
+        cursor = conn.cursor()
+        query = "SELECT * FROM pasiens WHERE no_rm = %s"
+        cursor.execute(query, (no_rm,))
+        result = cursor.fetchone()
+        # Tunggu beberapa detik untuk memastikan aplikasi terbuka
+        pyautogui.sleep(1)  # Menunggu 2 detik untuk aplikasi terbuka
+
+        # Isi username
+        pyautogui.write('1002r006th')  # Username
+        pyautogui.press('tab')  # Tekan Tab untuk berpindah ke kolom password
+        
+        # Isi password
+        pyautogui.write('#Bandung28')  # Password
+        pyautogui.press('enter')  # Tekan Enter untuk login
+
+        pyautogui.sleep(1)  # Tunggu sebentar agar login berhasil
+        pyautogui.press('enter')  # Tekan Enter untuk login
+        screen_width, screen_height = pyautogui.size()  # Dapatkan resolusi layar
+        pyautogui.click(screen_width // 2, screen_height // 2)  # Klik kiri di tengah layar
+        pyautogui.press('tab')  # Tekan Tab untuk berpindah ke kolom password
+        pyautogui.press('tab')  # Tekan Tab untuk berpindah ke kolom password
+        pyautogui.press('tab')  # Tekan Tab untuk berpindah ke kolom password
+        pyautogui.press('tab')  # Tekan Tab untuk berpindah ke kolom password
+        pyautogui.press('space')  # Tekan Tab untuk berpindah ke kolom password
+        pyautogui.write(result[36])
+        pyautogui.sleep(5)
+        pyautogui.hotkey('alt', 'f4')  # Menekan Alt + F4 untuk menutup aplikasi BPJS
+     
+
+        # messagebox.showinfo("Aplikasi BPJS", "Aplikasi BPJS Frista berhasil dibuka dan login berhasil!")
+    
+    except Exception as e:
+        messagebox.showerror("Error", f"Terjadi kesalahan saat membuka aplikasi: {e}")
+def open_bpjs_application_bpjs():
+    
+    try:
+        
+        # Jalankan file executable (.exe)
+        subprocess.Popen(["C:\\Program Files (x86)\\BPJS Kesehatan\\Aplikasi Sidik Jari BPJS Kesehatan\\After.exe"])
+        no_rm = entry_no_rm.get()
+        conn = mysql.connector.connect(
+            host="172.168.1.2",      # IP server MySQL
+            user="root",             # Nama pengguna
+            password="s1mrs234@",    # Password
+            database="otista_dev",   # Nama database
+            port=3306                # Ganti dengan port yang ditemukan, jika berbeda
+        )
+        if(len(no_rm)!=16):
+            cursor = conn.cursor()
+            query = "SELECT * FROM registrasis_dummy WHERE no_rm = %s"
+            cursor.execute(query, (no_rm,))
+            result = cursor.fetchone()
+            query = "SELECT * FROM pasiens WHERE no_rm = %s"
+            resultjkan = cursor.fetchone()
+            # Tunggu beberapa detik untuk memastikan aplikasi terbuka
+            pyautogui.sleep(1)  # Menunggu 2 detik untuk aplikasi terbuka
+
+            # Isi username
+            pyautogui.write('1002r006th')  # Username
+            pyautogui.press('tab')  # Tekan Tab untuk berpindah ke kolom password
+            
+            # Isi password
+            pyautogui.write('#Bandung28')  # Password
+            pyautogui.press('enter')  # Tekan Enter untuk login
+
+            pyautogui.sleep(1)  # Tunggu sebentar agar login berhasil
+            pyautogui.press('enter')  # Tekan Enter untuk login
+            screen_width, screen_height = pyautogui.size()  # Dapatkan resolusi layar
+            pyautogui.click(screen_width // 2, screen_height // 2)  # Klik kiri di tengah layar
+            if(result[3]):
+                pyautogui.write(result[3])
+            if(resultjkan[32]):
+                pyautogui.write(resultjkan[32])
+            pyautogui.sleep(5)
+            pyautogui.hotkey('alt', 'f4')  # Menekan Alt + F4 untuk menutup aplikasi BPJS
+        else:
+            cursor = conn.cursor()
+            query = "SELECT * FROM registrasis_dummy WHERE nik = %s"
+            cursor.execute(query, (no_rm,))
+            result = cursor.fetchone()
+            query = "SELECT * FROM pasiens WHERE nik = %s"
+            resultjkan = cursor.fetchone()
+            # Tunggu beberapa detik untuk memastikan aplikasi terbuka
+            pyautogui.sleep(1)  # Menunggu 2 detik untuk aplikasi terbuka
+
+            # Isi username
+            pyautogui.write('1002r006th')  # Username
+            pyautogui.press('tab')  # Tekan Tab untuk berpindah ke kolom password
+            
+            # Isi password
+            pyautogui.write('#Bandung28')  # Password
+            pyautogui.press('enter')  # Tekan Enter untuk login
+
+            pyautogui.sleep(1)  # Tunggu sebentar agar login berhasil
+            pyautogui.press('enter')  # Tekan Enter untuk login
+            screen_width, screen_height = pyautogui.size()  # Dapatkan resolusi layar
+            pyautogui.click(screen_width // 2, screen_height // 2)  # Klik kiri di tengah layar
+            if(result[3]):
+                pyautogui.write(result[3])
+            if(resultjkan[32]):
+                pyautogui.write(resultjkan[32])
+            pyautogui.sleep(5)
+            pyautogui.hotkey('alt', 'f4')  # Menekan Alt + F4 untuk menutup aplikasi BPJS
+    
+    except Exception as e:
+        messagebox.showerror("Error", f"Terjadi kesalahan saat membuka aplikasi: {e}")
+# Membuat aplikasi GUI dengan Tkinter
+root = tk.Tk()
+root.title("Pencarian Pasien")
+
+# Label untuk input no_rm
+label_no_rm = tk.Label(root, text="Masukkan No Rekam Medis / NIK / BPJS Anda:")
+label_no_rm.pack(pady=10)
+
+# Entry untuk memasukkan no_rm
+entry_no_rm = tk.Entry(root, width=30)
+entry_no_rm.pack(pady=5)
+
+# Tombol untuk mencari pasien
+search_button = tk.Button(root, text="Cari Pasien", command=search_patient)
+search_button.pack(pady=20)
+
+# Indikator Koneksi Internet
+internet_status = tk.Label(root, text="Internet: Memeriksa...", fg="orange")
+internet_status.pack(pady=10)
+
+# Indikator Koneksi Database
+db_status = tk.Label(root, text="Database: Memeriksa...", fg="orange")
+db_status.pack(pady=10)
+
+open_bpjs_button_by_nik = tk.Button(root, text="NIK", command=open_bpjs_application)
+open_bpjs_button_by_nik.pack(pady=20)
+
+open_bpjs_button_by_nik = tk.Button(root, text="NO RM / BPJS", command=open_bpjs_application_bpjs)
+open_bpjs_button_by_nik.pack(pady=20)
+# Periksa status internet dan database saat aplikasi dimulai
+check_internet()
+check_mysql_connection()
+
+# Menjalankan aplikasi Tkinter
+root.mainloop() 
