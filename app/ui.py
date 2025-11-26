@@ -27,11 +27,12 @@ class PatientApp:
         search_button = tk.Button(self.root, text="Cari Pasien", command=self.search_patient)
         search_button.pack(pady=20)
 
-        open_bpjs_button_by_nik = tk.Button(self.root, text="NIK", command=self.open_bpjs_by_member_id)
-        open_bpjs_button_by_nik.pack(pady=20)
-
-        open_bpjs_button_by_rm = tk.Button(self.root, text="NO RM / BPJS", command=self.open_bpjs_by_identifier)
-        open_bpjs_button_by_rm.pack(pady=20)
+        open_bpjs_button = tk.Button(
+            self.root,
+            text="Buka Aplikasi BPJS",
+            command=self.open_bpjs_by_identifier,
+        )
+        open_bpjs_button.pack(pady=20)
 
     def _build_status(self):
         self.internet_status = tk.Label(self.root, text="Internet: Memeriksa...", fg="orange")
