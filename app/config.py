@@ -14,3 +14,7 @@ BPJS_PASSWORD = "#Bandung28"
 LOGIN_DELAY_SECONDS = 0.8
 POST_LOGIN_DELAY_SECONDS = 0.6
 FORM_FILL_DELAY_SECONDS = 2.5
+
+# External system launch configuration
+CHROME_EXECUTABLE = r"C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
+CHECKIN_URL = "http://172.168.1.175:8070"

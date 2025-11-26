@@ -1,19 +1,25 @@
 """Tkinter UI for patient lookup and BPJS automation."""
+import subprocess
 import threading
 import tkinter as tk
 from tkinter import messagebox
 
 from app import bpjs, database, network
+from app.config import CHECKIN_URL, CHROME_EXECUTABLE
 
 
 class PatientApp:
     def __init__(self, root: tk.Tk):
         self.root = root
-        self.root.title("Pencarian Pasien")
+        self.root.title("Pencarian Pasien RSUD Oto Iskandar Dinata")
+        self.root.configure(background="#f7f8fa", padx=20, pady=20)
+
+        self.logo_image = tk.PhotoImage(file="assets/logo.png")
+        self.root.iconphoto(False, self.logo_image)
 
         self.no_rm_var = tk.StringVar()
         self.loading_var = tk.StringVar(value="")
-        self._digit_buttons: list[tk.Button] = []
+        self._keypad_buttons: list[tk.Button] = []
 
         self._build_inputs()
         self._build_status()
@@ -21,38 +27,135 @@ class PatientApp:
         self.refresh_status()
 
     def _build_inputs(self):
-        label_no_rm = tk.Label(self.root, text="Masukkan No Rekam Medis / NIK / BPJS Anda:")
-        label_no_rm.pack(pady=10)
+        header = tk.Frame(self.root, bg="#f7f8fa")
+        header.pack(pady=(0, 6))
 
-        entry_no_rm = tk.Entry(self.root, textvariable=self.no_rm_var, width=30)
-        entry_no_rm.pack(pady=5)
+        logo_label = tk.Label(header, image=self.logo_image, bg="#f7f8fa")
+        logo_label.pack(side=tk.LEFT, padx=(0, 10))
+
+        title = tk.Label(
+            header,
+            text="Layanan Check-In Pasien",
+            font=("Helvetica", 16, "bold"),
+            bg="#f7f8fa",
+        )
+        title.pack(side=tk.LEFT)
+
+        subtitle = tk.Label(
+            self.root,
+            text=(
+                "Masukkan No. Rekam Medis, NIK, atau nomor BPJS.\n"
+                "Tekan tombol sesuai kebutuhan, lalu ikuti langkah check-in."
+            ),
+            font=("Helvetica", 11),
+            bg="#f7f8fa",
+            fg="#3a3a3a",
+            justify=tk.CENTER,
+        )
+        subtitle.pack(pady=(0, 12))
+
+        entry_frame = tk.Frame(self.root, bg="#f7f8fa")
+        entry_frame.pack(pady=6)
+
+        label_no_rm = tk.Label(
+            entry_frame,
+            text="Nomor Identitas Pasien",
+            font=("Helvetica", 12, "bold"),
+            bg="#f7f8fa",
+        )
+        label_no_rm.grid(row=0, column=0, sticky="w", padx=(0, 10))
+
+        entry_no_rm = tk.Entry(
+            entry_frame,
+            textvariable=self.no_rm_var,
+            width=35,
+            font=("Helvetica", 14),
+            bd=2,
+            relief=tk.GROOVE,
+        )
+        entry_no_rm.grid(row=1, column=0, padx=(0, 10), pady=5, sticky="we")
         self.no_rm_entry = entry_no_rm
 
-        keypad_frame = tk.Frame(self.root)
+        keypad_frame = tk.Frame(self.root, bg="#f7f8fa")
         keypad_frame.pack(pady=5)
-        digits = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"]
-        for index, digit in enumerate(digits):
+
+        keypad_layout = [
+            ("1", self._append_digit),
+            ("2", self._append_digit),
+            ("3", self._append_digit),
+            ("4", self._append_digit),
+            ("5", self._append_digit),
+            ("6", self._append_digit),
+            ("7", self._append_digit),
+            ("8", self._append_digit),
+            ("9", self._append_digit),
+            ("Clear", self._clear_input),
+            ("0", self._append_digit),
+            ("Del", self._delete_last_digit),
+        ]
+
+        for index, (label, handler) in enumerate(keypad_layout):
+            is_action = label in {"Clear", "Del"}
+            bg_color = "#ffd6e0" if label == "Clear" else "#ffe8cc" if label == "Del" else "#ffffff"
             button = tk.Button(
                 keypad_frame,
-                text=digit,
-                width=4,
-                command=lambda d=digit: self._append_digit(d),
+                text=label,
+                width=8,
+                height=2,
+                font=("Helvetica", 12, "bold"),
+                bg=bg_color,
+                command=(lambda l=label, h=handler: h(l) if not is_action else h()),
             )
-            button.grid(row=index // 3, column=index % 3, padx=3, pady=3)
-            self._digit_buttons.append(button)
+            button.grid(row=index // 3, column=index % 3, padx=4, pady=4, sticky="nsew")
+            self._keypad_buttons.append(button)
 
-        self.search_button = tk.Button(self.root, text="Cari Pasien", command=self.search_patient)
-        self.search_button.pack(pady=20)
+        for column_index in range(3):
+            keypad_frame.grid_columnconfigure(column_index, weight=1)
+
+        action_frame = tk.Frame(self.root, bg="#f7f8fa")
+        action_frame.pack(pady=12)
+
+        self.search_button = tk.Button(
+            action_frame,
+            text="Cari Data Pasien",
+            font=("Helvetica", 12, "bold"),
+            width=25,
+            height=2,
+            bg="#d9f2ff",
+            command=self.search_patient,
+        )
+        self.search_button.grid(row=0, column=0, padx=8, pady=6)
 
         self.open_bpjs_button = tk.Button(
-            self.root,
-            text="Buka Aplikasi BPJS",
+            action_frame,
+            text="Buka Check-In BPJS",
+            font=("Helvetica", 12, "bold"),
+            width=25,
+            height=2,
+            bg="#c8f7c5",
             command=self.open_bpjs_by_identifier,
         )
-        self.open_bpjs_button.pack(pady=10)
+        self.open_bpjs_button.grid(row=0, column=1, padx=8, pady=6)
 
-        loading_label = tk.Label(self.root, textvariable=self.loading_var, fg="blue")
-        loading_label.pack(pady=(0, 10))
+        self.open_checkin_portal_button = tk.Button(
+            action_frame,
+            text="Buka Sistem Pendaftaran",
+            font=("Helvetica", 12, "bold"),
+            width=25,
+            height=2,
+            bg="#fff2b2",
+            command=self.open_checkin_portal,
+        )
+        self.open_checkin_portal_button.grid(row=1, column=0, columnspan=2, padx=8, pady=(6, 2))
+
+        loading_label = tk.Label(
+            self.root,
+            textvariable=self.loading_var,
+            fg="#0057a4",
+            bg="#f7f8fa",
+            font=("Helvetica", 11, "italic"),
+        )
+        loading_label.pack(pady=(4, 12))
 
     def _build_status(self):
         self.internet_status = tk.Label(self.root, text="Internet: Memeriksa...", fg="orange")
@@ -103,7 +206,7 @@ class PatientApp:
             messagebox.showwarning("Input Error", "Nomor Rekam Medis tidak boleh kosong.")
             return
 
-        self._run_bpjs_action(lambda: bpjs.open_bpjs_for_member_id(no_rm))
+        self._run_bpjs_action(lambda: bpjs.open_bpjs_for_member_id(no_rm), "Membuka aplikasi BPJS...")
 
     def open_bpjs_by_identifier(self):
         identifier = self.no_rm_var.get().strip()
@@ -111,10 +214,16 @@ class PatientApp:
             messagebox.showwarning("Input Error", "Masukkan No RM, NIK, atau BPJS terlebih dahulu.")
             return
 
-        self._run_bpjs_action(lambda: bpjs.open_bpjs_for_identifier(identifier))
+        self._run_bpjs_action(lambda: bpjs.open_bpjs_for_identifier(identifier), "Membuka aplikasi BPJS...")
 
-    def _run_bpjs_action(self, action):
-        self._set_loading_state(True, "Membuka aplikasi BPJS...")
+    def open_checkin_portal(self):
+        self._run_bpjs_action(self._launch_checkin_portal, "Membuka sistem pendaftaran...")
+
+    def _launch_checkin_portal(self):
+        subprocess.Popen([CHROME_EXECUTABLE, CHECKIN_URL])
+
+    def _run_bpjs_action(self, action, message: str):
+        self._set_loading_state(True, message)
 
         def task():
             try:
@@ -136,11 +245,21 @@ class PatientApp:
         state = tk.DISABLED if is_loading else tk.NORMAL
         self.search_button.config(state=state)
         self.open_bpjs_button.config(state=state)
-        for button in self._digit_buttons:
+        self.open_checkin_portal_button.config(state=state)
+        for button in self._keypad_buttons:
             button.config(state=state)
         self.root.update_idletasks()
 
     def _append_digit(self, digit: str):
         current = self.no_rm_var.get()
         self.no_rm_var.set(current + digit)
+        self.no_rm_entry.icursor(tk.END)
+
+    def _delete_last_digit(self):
+        current = self.no_rm_var.get()
+        self.no_rm_var.set(current[:-1])
+        self.no_rm_entry.icursor(tk.END)
+
+    def _clear_input(self):
+        self.no_rm_var.set("")
         self.no_rm_entry.icursor(tk.END)
