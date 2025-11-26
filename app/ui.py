@@ -89,6 +89,9 @@ class PatientApp:
 
     def open_bpjs_by_identifier(self):
         identifier = self.no_rm_var.get().strip()
+        if not identifier:
+            messagebox.showwarning("Input Error", "Nomor Rekam Medis / NIK / BPJS tidak boleh kosong.")
+            return
         try:
             bpjs.open_bpjs_for_identifier(identifier)
         except Exception as error:

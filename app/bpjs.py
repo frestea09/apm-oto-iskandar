@@ -51,7 +51,7 @@ def _fill_member_id(member_id: str):
 
 def _fill_registration_details(registration: Optional[tuple], patient: Optional[tuple]):
     _focus_window()
-    if registration and registration[3]:
+    if registration and len(registration) > 3 and registration[3]:
         pyautogui.write(registration[3])
     if patient and len(patient) > 32 and patient[32]:
         pyautogui.write(patient[32])
@@ -60,7 +60,12 @@ def _fill_registration_details(registration: Optional[tuple], patient: Optional[
 
 
 def open_bpjs_for_member_id(no_rm: str):
-    patient = database.fetch_patient_by_no_rm(no_rm)
+    try:
+        patient = database.fetch_patient_by_no_rm(no_rm)
+    except Exception as db_error:
+        raise BpjsAutomationError(
+            "Gagal mengambil data pasien dari database. Pastikan koneksi database tersedia."
+        ) from db_error
     if not patient:
         raise BpjsAutomationError("Pasien dengan No RM tersebut tidak ditemukan.")
 
@@ -79,12 +84,17 @@ def open_bpjs_for_identifier(identifier: str):
     registration: Optional[tuple]
     patient: Optional[tuple]
 
-    if len(identifier) != 16:
-        registration = database.fetch_registration_by_no_rm(identifier)
-        patient = database.fetch_patient_by_no_rm(identifier)
-    else:
-        registration = database.fetch_registration_by_nik(identifier)
-        patient = database.fetch_patient_by_nik(identifier)
+    try:
+        if len(identifier) != 16:
+            registration = database.fetch_registration_by_no_rm(identifier)
+            patient = database.fetch_patient_by_no_rm(identifier)
+        else:
+            registration = database.fetch_registration_by_nik(identifier)
+            patient = database.fetch_patient_by_nik(identifier)
+    except Exception as db_error:
+        raise BpjsAutomationError(
+            "Gagal mengambil data registrasi atau pasien. Periksa koneksi database."
+        ) from db_error
 
     if not registration and not patient:
         raise BpjsAutomationError("Data registrasi atau pasien tidak ditemukan.")
