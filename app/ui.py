@@ -1,0 +1,95 @@
+"""Tkinter UI for patient lookup and BPJS automation."""
+import tkinter as tk
+from tkinter import messagebox
+
+from app import bpjs, database, network
+
+
+class PatientApp:
+    def __init__(self, root: tk.Tk):
+        self.root = root
+        self.root.title("Pencarian Pasien")
+
+        self.no_rm_var = tk.StringVar()
+
+        self._build_inputs()
+        self._build_status()
+
+        self.refresh_status()
+
+    def _build_inputs(self):
+        label_no_rm = tk.Label(self.root, text="Masukkan No Rekam Medis / NIK / BPJS Anda:")
+        label_no_rm.pack(pady=10)
+
+        entry_no_rm = tk.Entry(self.root, textvariable=self.no_rm_var, width=30)
+        entry_no_rm.pack(pady=5)
+
+        search_button = tk.Button(self.root, text="Cari Pasien", command=self.search_patient)
+        search_button.pack(pady=20)
+
+        open_bpjs_button_by_nik = tk.Button(self.root, text="NIK", command=self.open_bpjs_by_member_id)
+        open_bpjs_button_by_nik.pack(pady=20)
+
+        open_bpjs_button_by_rm = tk.Button(self.root, text="NO RM / BPJS", command=self.open_bpjs_by_identifier)
+        open_bpjs_button_by_rm.pack(pady=20)
+
+    def _build_status(self):
+        self.internet_status = tk.Label(self.root, text="Internet: Memeriksa...", fg="orange")
+        self.internet_status.pack(pady=10)
+
+        self.db_status = tk.Label(self.root, text="Database: Memeriksa...", fg="orange")
+        self.db_status.pack(pady=10)
+
+    def refresh_status(self):
+        if network.has_internet_connection():
+            self.internet_status.config(text="Internet: Terhubung", fg="green")
+        else:
+            self.internet_status.config(text="Internet: Tidak Terhubung", fg="red")
+
+        connection_ok = database.ping_database()
+
+        if connection_ok:
+            self.db_status.config(text="Database: Tersedia", fg="green")
+        else:
+            self.db_status.config(text="Database: Tidak Tersedia", fg="red")
+
+    def search_patient(self):
+        no_rm = self.no_rm_var.get().strip()
+        if not no_rm:
+            messagebox.showwarning("Input Error", "Nomor Rekam Medis (no_rm) tidak boleh kosong.")
+            return
+
+        try:
+            patient = database.fetch_patient_by_no_rm(no_rm)
+        except Exception as err:
+            messagebox.showerror("Database Error", f"Terjadi kesalahan: {err}")
+            return
+
+        if patient:
+            patient_info = (
+                f"Nama: {patient[3]}\n"
+                f"Tgl Lahir: {patient[5]}\n"
+                f"Alamat: {patient[7]}\n"
+                f"Golongan Darah: {patient[8]}"
+            )
+            messagebox.showinfo("Hasil Pencarian", patient_info)
+        else:
+            messagebox.showinfo("Hasil Pencarian", "Pasien dengan No RM tersebut tidak ditemukan.")
+
+    def open_bpjs_by_member_id(self):
+        no_rm = self.no_rm_var.get().strip()
+        if not no_rm:
+            messagebox.showwarning("Input Error", "Nomor Rekam Medis tidak boleh kosong.")
+            return
+
+        try:
+            bpjs.open_bpjs_for_member_id(no_rm)
+        except Exception as error:
+            bpjs.handle_automation_error(error)
+
+    def open_bpjs_by_identifier(self):
+        identifier = self.no_rm_var.get().strip()
+        try:
+            bpjs.open_bpjs_for_identifier(identifier)
+        except Exception as error:
+            bpjs.handle_automation_error(error)
