@@ -14,6 +14,12 @@ class PatientApp:
         self.root.title("Pencarian Pasien RSUD Oto Iskandar Dinata")
         self.root.configure(background="#f7f8fa", padx=20, pady=20, height=5, width=5)
 
+        self.screen_width = self.root.winfo_screenwidth()
+        self.screen_height = self.root.winfo_screenheight()
+        self.half_screen_width = max(self.screen_width // 2, 1)
+        self.half_screen_height = max(self.screen_height // 2, 1)
+        self.root.geometry(f"{self.half_screen_width}x{self.half_screen_height}+0+0")
+
         self.logo_image = tk.PhotoImage(file="assets/logo_dua.png")
         self.root.iconphoto(False, self.logo_image)
 
@@ -104,7 +110,11 @@ class PatientApp:
                 height=2,
                 font=("Helvetica", 12, "bold"),
                 bg=bg_color,
-                command=(lambda l=label, h=handler: h(l) if not is_action else h()),
+                command=(
+                    lambda l=label, h=handler, action=is_action: h(l)
+                    if not action
+                    else h()
+                ),
             )
             button.grid(row=index // 3, column=index % 3, padx=4, pady=4, sticky="nsew")
             self._keypad_buttons.append(button)
@@ -220,7 +230,17 @@ class PatientApp:
         self._run_bpjs_action(self._launch_checkin_portal, "Membuka sistem pendaftaran...")
 
     def _launch_checkin_portal(self):
-        subprocess.Popen([CHROME_EXECUTABLE, CHECKIN_URL])
+        window_position = f"--window-position={self.half_screen_width},0"
+        window_size = f"--window-size={self.half_screen_width},{self.screen_height}"
+        subprocess.Popen(
+            [
+                CHROME_EXECUTABLE,
+                window_position,
+                window_size,
+                "--new-window",
+                CHECKIN_URL,
+            ]
+        )
 
     def _run_bpjs_action(self, action, message: str):
         self._set_loading_state(True, message)
