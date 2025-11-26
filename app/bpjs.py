@@ -59,6 +59,15 @@ def _fill_registration_details(registration: Optional[tuple], patient: Optional[
     pyautogui.hotkey("alt", "f4")
 
 
+def _extract_nik_from_patient(patient: tuple) -> Optional[str]:
+    """Return the first 16-digit numeric field found in the patient tuple."""
+
+    for field in patient:
+        if isinstance(field, str) and len(field) == 16 and field.isdigit():
+            return field
+    return None
+
+
 def open_bpjs_for_member_id(no_rm: str):
     patient = database.fetch_patient_by_no_rm(no_rm)
     if not patient:
@@ -92,9 +101,23 @@ def open_bpjs_for_identifier(identifier: str):
     if not registration and not patient:
         raise BpjsAutomationError("Data registrasi atau pasien tidak ditemukan.")
 
+    nik = None
+    if len(identifier) == 16 and identifier.isdigit():
+        nik = identifier
+    if not nik and patient:
+        nik = _extract_nik_from_patient(patient)
+
     _launch_application()
     _login()
-    _fill_registration_details(registration, patient)
+
+    if registration:
+        _fill_registration_details(registration, patient)
+    elif patient and len(patient) > 32 and patient[32]:
+        _fill_registration_details(None, patient)
+    elif nik:
+        _fill_member_id(nik)
+    else:
+        raise BpjsAutomationError("NIK untuk pasien tidak ditemukan.")
 
 
 def handle_automation_error(error: Exception):
