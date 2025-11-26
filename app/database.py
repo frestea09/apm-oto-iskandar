@@ -61,3 +61,16 @@ def fetch_registration_by_nik(nik: str) -> Optional[RegistrationRow]:
         "SELECT * FROM registrasis_dummy WHERE nik = %s ORDER BY id DESC LIMIT 1",
         (nik,),
     )
+
+
+def fetch_registration_by_bpjs(bpjs_number: str) -> Optional[RegistrationRow]:
+    """Fetch the newest registration matching the given BPJS card number."""
+    return fetch_one(
+        "SELECT * FROM registrasis_dummy WHERE nomorkartu = %s ORDER BY id DESC LIMIT 1",
+        (bpjs_number,),
+    )
+
+
+def fetch_patient_by_bpjs(bpjs_number: str) -> Optional[PatientRow]:
+    """Fetch a patient record by BPJS card number."""
+    return fetch_one("SELECT * FROM pasiens WHERE no_jkn = %s", (bpjs_number,))
