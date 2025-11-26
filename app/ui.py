@@ -17,8 +17,7 @@ class PatientApp:
         self.screen_width = self.root.winfo_screenwidth()
         self.screen_height = self.root.winfo_screenheight()
         self.half_screen_width = max(self.screen_width // 2, 1)
-        self.half_screen_height = max(self.screen_height // 2, 1)
-        self.root.geometry(f"{self.half_screen_width}x{self.half_screen_height}+0+0")
+        self.root.geometry(f"{self.half_screen_width}x{self.screen_height}+0+0")
 
         self.logo_image = tk.PhotoImage(file="assets/logo_dua.png")
         self.root.iconphoto(False, self.logo_image)
