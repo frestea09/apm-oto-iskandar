@@ -54,7 +54,15 @@ def _fill_registration_details(registration: Optional[tuple], patient: Optional[
     if registration and registration[3]:
         pyautogui.write(registration[3])
     if patient and len(patient) > 32 and patient[32]:
-        pyautogui.write(patient[32])
+        if(len(patient[32])!=1):
+            pyautogui.write(patient[32])
+        else:
+            pyautogui.press("tab")
+            pyautogui.press("tab")
+            pyautogui.press("tab")
+            pyautogui.press("tab")
+            pyautogui.press("space")
+            pyautogui.write(patient[36])
     pyautogui.sleep(FORM_FILL_DELAY_SECONDS)
     pyautogui.hotkey("alt", "f4")
 
