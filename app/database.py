@@ -48,8 +48,16 @@ def fetch_patient_by_nik(nik: str) -> Optional[PatientRow]:
 
 
 def fetch_registration_by_no_rm(no_rm: str) -> Optional[RegistrationRow]:
-    return fetch_one("SELECT * FROM registrasis_dummy WHERE no_rm = %s", (no_rm,))
+    """Fetch the newest registration matching the given medical record number."""
+    return fetch_one(
+        "SELECT * FROM registrasis_dummy WHERE no_rm = %s ORDER BY id DESC LIMIT 1",
+        (no_rm,),
+    )
 
 
 def fetch_registration_by_nik(nik: str) -> Optional[RegistrationRow]:
-    return fetch_one("SELECT * FROM registrasis_dummy WHERE nik = %s", (nik,))
+    """Fetch the newest registration matching the given national ID."""
+    return fetch_one(
+        "SELECT * FROM registrasis_dummy WHERE nik = %s ORDER BY id DESC LIMIT 1",
+        (nik,),
+    )
