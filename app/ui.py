@@ -21,11 +21,16 @@ class PatientApp:
         self.half_screen_width = max(self.screen_width // 2, 1)
         self.root.geometry(f"{self.half_screen_width}x{self.screen_height}+0+0")
 
-        # Menentukan lokasi assets
-        bundle_dir = Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parent.parent))
+        # Menentukan lokasi assets (mendukung PyInstaller & py2exe)
+        if getattr(sys, "_MEIPASS", None):  # PyInstaller
+            assets_root = Path(sys._MEIPASS)
+        elif getattr(sys, "frozen", False):  # py2exe atau exe lain
+            assets_root = Path(sys.executable).resolve().parent
+        else:  # saat pengembangan
+            assets_root = Path(__file__).resolve().parent.parent
 
         # Path lengkap ke file gambar
-        image_path = (bundle_dir / "assets" / "logo_dua.png").resolve()
+        image_path = (assets_root / "assets" / "logo_dua.png").resolve()
 
         self.logo_image = tk.PhotoImage(file=str(image_path))
 
