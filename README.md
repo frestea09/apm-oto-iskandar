@@ -35,7 +35,13 @@ Rekomendasi singkat: lakukan build dari dalam *virtual environment* bersih agar 
      --noconsole \
      --onefile \
      --add-data "assets;assets" \
+     --collect-all mysql.connector \
      main.py
+   ```
+   Atau gunakan `main.spec` yang sudah disiapkan untuk otomatis membawa modul
+   `mysql.connector` saat build onefile:
+   ```bash
+   pyinstaller main.spec
    ```
    Keterangan penting:
    - Gunakan tanda titik koma (`;`) pada `--add-data` khusus Windows (contoh di atas). Jika build dari Linux/macOS, gunakan titik dua (`:`) menjadi `--add-data "assets:assets"`.

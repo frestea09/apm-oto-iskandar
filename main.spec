@@ -1,12 +1,20 @@
 # -*- mode: python ; coding: utf-8 -*-
 
+from PyInstaller.utils.hooks import collect_all
+
+
+# Pastikan semua modul mysql.connector terbawa agar koneksi database
+# tetap berfungsi pada hasil bundling onefile.
+mysql_datas, mysql_binaries, mysql_hiddenimports = collect_all("mysql.connector")
+
+asset_datas = [('assets', 'assets')]
 
 a = Analysis(
     ['main.py'],
     pathex=[],
-    binaries=[],
-    datas=[('assets', 'assets')],
-    hiddenimports=[],
+    binaries=mysql_binaries,
+    datas=asset_datas + mysql_datas,
+    hiddenimports=mysql_hiddenimports,
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
