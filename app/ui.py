@@ -4,7 +4,7 @@ import threading
 import tkinter as tk
 from tkinter import messagebox
 import sys
-import os
+from pathlib import Path
 
 from app import bpjs, database, network
 from app.config import CHECKIN_URL, CHROME_EXECUTABLE
@@ -22,17 +22,12 @@ class PatientApp:
         self.root.geometry(f"{self.half_screen_width}x{self.screen_height}+0+0")
 
         # Menentukan lokasi assets
-        if getattr(sys, 'frozen', False):
-            # Jika aplikasi dijalankan sebagai file bundel (.exe)
-            bundle_dir = sys._MEIPASS
-        else:
-            # Jika aplikasi dijalankan dari source code
-            bundle_dir = os.path.dirname(os.path.abspath(__file__))
+        bundle_dir = Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parent.parent))
 
         # Path lengkap ke file gambar
-        image_path = os.path.join(bundle_dir, 'assets', 'logo_dua.png')
+        image_path = (bundle_dir / "assets" / "logo_dua.png").resolve()
 
-        self.logo_image = tk.PhotoImage(file=image_path)
+        self.logo_image = tk.PhotoImage(file=str(image_path))
 
         self.root.iconphoto(False, self.logo_image)
 
