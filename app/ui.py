@@ -11,8 +11,8 @@ from app.config import CHECKIN_URL, CHROME_EXECUTABLE
 class PatientApp:
     def __init__(self, root: tk.Tk):
         self.root = root
-        self.root.title("Pencarian Pasien RSUD Oto Iskandar Dinata")
-        self.root.configure(background="#f7f8fa", padx=20, pady=20, height=5, width=5)
+        self.root.title("Sistem APM RSUD OTO ISKANDAR DINATA")
+        self.root.configure(background="#ffffff", padx=20, pady=20, height=5, width=5)
 
         self.screen_width = self.root.winfo_screenwidth()
         self.screen_height = self.root.winfo_screenheight()
@@ -32,17 +32,17 @@ class PatientApp:
         self.refresh_status()
 
     def _build_inputs(self):
-        header = tk.Frame(self.root, bg="#f7f8fa")
+        header = tk.Frame(self.root, bg="#ffffff")
         header.pack(pady=(0, 6))
 
-        logo_label = tk.Label(header, image=self.logo_image, bg="#f7f8fa")
+        logo_label = tk.Label(header, image=self.logo_image, bg="#ffffff")
         logo_label.pack(side=tk.LEFT, padx=(0, 10))
 
         title = tk.Label(
             header,
             text="Layanan Check-In Pasien",
             font=("Helvetica", 16, "bold"),
-            bg="#f7f8fa",
+            bg="#ffffff",
         )
         title.pack(side=tk.LEFT)
 
@@ -53,20 +53,20 @@ class PatientApp:
                 "Tekan tombol sesuai kebutuhan, lalu ikuti langkah check-in."
             ),
             font=("Helvetica", 11),
-            bg="#f7f8fa",
+            bg="#ffffff",
             fg="#3a3a3a",
             justify=tk.CENTER,
         )
         subtitle.pack(pady=(0, 12))
 
-        entry_frame = tk.Frame(self.root, bg="#f7f8fa")
+        entry_frame = tk.Frame(self.root, bg="#ffffff")
         entry_frame.pack(pady=6)
 
         label_no_rm = tk.Label(
             entry_frame,
             text="Nomor Identitas Pasien",
             font=("Helvetica", 12, "bold"),
-            bg="#f7f8fa",
+            bg="#ffffff",
         )
         label_no_rm.grid(row=0, column=0, sticky="w", padx=(0, 10))
 
@@ -78,10 +78,10 @@ class PatientApp:
             bd=2,
             relief=tk.GROOVE,
         )
-        entry_no_rm.grid(row=1, column=0, padx=(0, 10), pady=5, sticky="we")
+        entry_no_rm.grid(row=1, column=0,ipadx=5,ipady=7, padx=(0, 10), pady=5, sticky="we")
         self.no_rm_entry = entry_no_rm
 
-        keypad_frame = tk.Frame(self.root, bg="#f7f8fa")
+        keypad_frame = tk.Frame(self.root, bg="#ffffff")
         keypad_frame.pack(pady=5)
 
         keypad_layout = [
@@ -121,7 +121,7 @@ class PatientApp:
         for column_index in range(3):
             keypad_frame.grid_columnconfigure(column_index, weight=1)
 
-        action_frame = tk.Frame(self.root, bg="#f7f8fa")
+        action_frame = tk.Frame(self.root, bg="#ffffff")
         action_frame.pack(pady=12)
 
         self.search_button = tk.Button(

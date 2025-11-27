@@ -1,0 +1,38 @@
+# Python bytecode
+*.pyc
+__pycache__/
+
+# Virtual environment
+env/
+.venv/
+venv/
+
+# IDE config files
+.idea/
+.vscode/
+
+# Environment variables
+.env
+
+# Log files
+*.log
+
+# Build and distribution
+build/
+dist/
+*.egg-info/
+
+# macOS
+.DS_Store
+
+# Editor backup files
+*~
+*.swp
+*.bak
+
+# Jupyter notebooks checkpoints
+.ipynb_checkpoints/
+
+# Database files
+*.db
+*.sqlite3
