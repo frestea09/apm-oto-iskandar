@@ -32,9 +32,11 @@ def ping_database() -> tuple[bool, Optional[str]]:
     except mysql.connector.Error as err:
         if err.errno == 2059 and "mysql_native_password" in str(err):
             error_message = (
-                "Plugin autentikasi mysql_native_password tidak tersedia. "
-                "Pastikan server mengizinkan mysql_native_password dan paket "
-                "MySQL Connector terpasang lengkap di bundel aplikasi."
+                "Plugin autentikasi mysql_native_password belum aktif di server. "
+                "Perbarui user MySQL yang dipakai aplikasi agar memakai plugin tersebut, "
+                "contoh perintah: ALTER USER '<user>'@'%' IDENTIFIED WITH "
+                "mysql_native_password BY '<password>'; lalu FLUSH PRIVILEGES. "
+                "Connector sudah dibundel di aplikasi, tidak perlu install tambahan di PC."
             )
         else:
             error_message = f"{err}"
