@@ -5,6 +5,9 @@ from pathlib import Path
 from typing import Iterable, Optional, Tuple
 
 import mysql.connector
+# Explicitly import the caching_sha2_password auth plugin so PyInstaller
+# bundles it for onefile executables.
+from mysql.connector.plugins import caching_sha2_password  # noqa: F401
 
 from app.config import DB_CONFIG
 

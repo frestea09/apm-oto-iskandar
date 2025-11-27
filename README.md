@@ -44,8 +44,9 @@ Rekomendasi singkat: lakukan build dari dalam *virtual environment* bersih agar 
    pyinstaller main.spec
    ```
    Keterangan penting:
-   - Gunakan tanda titik koma (`;`) pada `--add-data` khusus Windows (contoh di atas). Jika build dari Linux/macOS, gunakan titik dua (`:`) menjadi `--add-data "assets:assets"`.
-   - File hasil build tersedia di `dist/` setelah proses selesai. Hapus folder `build/` dan `*.spec` jika ingin melakukan build ulang yang bersih.
+  - Gunakan tanda titik koma (`;`) pada `--add-data` khusus Windows (contoh di atas). Jika build dari Linux/macOS, gunakan titik dua (`:`) menjadi `--add-data "assets:assets"`.
+  - File hasil build tersedia di `dist/` setelah proses selesai. Hapus folder `build/` dan `*.spec` jika ingin melakukan build ulang yang bersih.
+  - Plugin autentikasi `caching_sha2_password` sudah diimpor eksplisit di kode dan disertakan di `main.spec` agar ikut terbawa ke executable PyInstaller.
 4. Jika lokasi Chrome atau aplikasi BPJS berbeda dari default, perbarui nilainya di `app/config.py` sebelum menjalankan PyInstaller agar ikut tertanam di executable.
 5. Uji hasil build pada mesin Windows target dengan membuka `dist/PencarianPasien.exe`. Pastikan dependency eksternal (Chrome dan aplikasi BPJS) sudah terpasang di mesin pengguna.
 

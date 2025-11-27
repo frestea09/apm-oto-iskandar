@@ -6,6 +6,8 @@ from PyInstaller.utils.hooks import collect_all
 # Pastikan semua modul mysql.connector terbawa agar koneksi database
 # tetap berfungsi pada hasil bundling onefile.
 mysql_datas, mysql_binaries, mysql_hiddenimports = collect_all("mysql.connector")
+# Pastikan plugin caching_sha2_password juga terbawa di hiddenimports
+mysql_hiddenimports.append("mysql.connector.plugins.caching_sha2_password")
 
 asset_datas = [('assets', 'assets')]
 
