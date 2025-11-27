@@ -46,7 +46,7 @@ Rekomendasi singkat: lakukan build dari dalam *virtual environment* bersih agar 
    Keterangan penting:
   - Gunakan tanda titik koma (`;`) pada `--add-data` khusus Windows (contoh di atas). Jika build dari Linux/macOS, gunakan titik dua (`:`) menjadi `--add-data "assets:assets"`.
   - File hasil build tersedia di `dist/` setelah proses selesai. Hapus folder `build/` dan `*.spec` jika ingin melakukan build ulang yang bersih.
-  - Plugin autentikasi `caching_sha2_password` sudah diimpor eksplisit di kode dan disertakan di `main.spec` agar ikut terbawa ke executable PyInstaller.
+   - Plugin autentikasi `caching_sha2_password` sudah diimpor eksplisit di kode dan disertakan di `main.spec` agar ikut terbawa ke executable PyInstaller. Jika server Anda sudah menggunakan plugin baru ini dan tidak ingin lagi memakai `mysql_native_password`, set environment variable `APM_DB_AUTH_PLUGIN=caching_sha2_password` sebelum menjalankan aplikasi atau melakukan build.
 4. Jika lokasi Chrome atau aplikasi BPJS berbeda dari default, perbarui nilainya di `app/config.py` sebelum menjalankan PyInstaller agar ikut tertanam di executable.
 5. Uji hasil build pada mesin Windows target dengan membuka `dist/PencarianPasien.exe`. Pastikan dependency eksternal (Chrome dan aplikasi BPJS) sudah terpasang di mesin pengguna.
 
@@ -70,7 +70,7 @@ Jika lebih nyaman memakai `py2exe`, skrip `setup_py2exe.py` sudah disiapkan agar
    - Output tersalin ke folder `dist_py2exe/` dengan struktur `PencarianPasien.exe` dan subfolder `assets` di sampingnya agar logo/gambar terbaca.
    - Skrip `setup_py2exe.py` kini hanya mendaftarkan paket `app` dan modul `main` sehingga pesan "Multiple top-level packages discovered" tidak muncul walau ada folder lain di akar repo (mis. `assets`).
    - Jika ingin build ulang yang bersih, hapus folder `build/` dan `dist_py2exe/` sebelum menjalankan perintah di atas.
-3. Uji `dist_py2exe/PencarianPasien.exe` di mesin target. Pastikan MySQL server dapat diakses dan plugin `mysql_native_password` sudah diaktifkan sesuai panduan sebelumnya.
+3. Uji `dist_py2exe/PencarianPasien.exe` di mesin target. Pastikan MySQL server dapat diakses. Secara default aplikasi memakai `mysql_native_password`; jika server Anda sudah memakai `caching_sha2_password`, set environment variable `APM_DB_AUTH_PLUGIN=caching_sha2_password` sebelum menjalankan atau membangun ulang.
 
 ## Catatan tambahan
 

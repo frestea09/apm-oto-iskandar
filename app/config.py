@@ -1,4 +1,7 @@
 """Central configuration for database and BPJS automation."""
+import os
+
+DB_AUTH_PLUGIN = os.environ.get("APM_DB_AUTH_PLUGIN", "mysql_native_password")
 
 DB_CONFIG = {
     "host": "172.168.1.2",
@@ -6,8 +9,8 @@ DB_CONFIG = {
     "password": "s1mrs234@",
     "database": "otista_dev",
     "port": 3306,
-    # Pastikan menggunakan plugin autentikasi bawaan yang didukung pyinstaller
-    "auth_plugin": "mysql_native_password",
+    # Gunakan env APM_DB_AUTH_PLUGIN="caching_sha2_password" bila server sudah default plugin baru
+    "auth_plugin": DB_AUTH_PLUGIN,
 }
 
 BPJS_EXECUTABLE = r"C:\\Program Files (x86)\\BPJS Kesehatan\\Aplikasi Sidik Jari BPJS Kesehatan\\After.exe"

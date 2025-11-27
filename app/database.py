@@ -33,17 +33,24 @@ def ping_database() -> tuple[bool, Optional[str]]:
         with mysql_connection():
             return True, None
     except mysql.connector.Error as err:
-        if err.errno == 2059 and "mysql_native_password" in str(err):
+        err_str = str(err)
+        if err.errno == 2059 and "mysql_native_password" in err_str:
             error_message = (
                 "Plugin autentikasi mysql_native_password belum aktif di server. "
-                "Perbarui user MySQL yang dipakai aplikasi agar memakai plugin tersebut. "
-                "Di server Ubuntu, login ke shell MySQL (contoh: sudo mysql -u root -p), lalu jalankan: "
-                "ALTER USER '<user>'@'%' IDENTIFIED WITH mysql_native_password BY '<password>'; "
-                "FLUSH PRIVILEGES; dan jika perlu set default_authentication_plugin=mysql_native_password "
-                "di my.cnf sebelum restart MySQL. Connector sudah dibundel di aplikasi, tidak perlu install tambahan di PC."
+                "Anda bisa mengubah user MySQL menjadi mysql_native_password atau beralih ke plugin baru "
+                "dengan set env APM_DB_AUTH_PLUGIN=caching_sha2_password agar aplikasi menyesuaikan server. "
+                "Di server Ubuntu, login (sudo mysql -u root -p) lalu jalankan: "
+                "ALTER USER '<user>'@'%' IDENTIFIED WITH mysql_native_password BY '<password>'; FLUSH PRIVILEGES; "
+                "atau gunakan caching_sha2_password sesuai default server. Connector sudah dibundel."
+            )
+        elif err.errno == 2059 and "caching_sha2_password" in err_str:
+            error_message = (
+                "Server meminta plugin caching_sha2_password. Aktifkan dengan set APM_DB_AUTH_PLUGIN="
+                "caching_sha2_password sebelum build/jalankan, atau ubah user MySQL ke plugin tersebut: "
+                "ALTER USER '<user>'@'%' IDENTIFIED WITH caching_sha2_password BY '<password>'; FLUSH PRIVILEGES;."
             )
         else:
-            error_message = f"{err}"
+            error_message = f"{err_str}"
         logger.error("Database ping failed: %s", error_message)
         return False, error_message
     except Exception as err:  # noqa: BLE001
