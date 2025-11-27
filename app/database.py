@@ -30,7 +30,14 @@ def ping_database() -> tuple[bool, Optional[str]]:
         with mysql_connection():
             return True, None
     except mysql.connector.Error as err:
-        error_message = f"{err}"
+        if err.errno == 2059 and "mysql_native_password" in str(err):
+            error_message = (
+                "Plugin autentikasi mysql_native_password tidak tersedia. "
+                "Pastikan server mengizinkan mysql_native_password dan paket "
+                "MySQL Connector terpasang lengkap di bundel aplikasi."
+            )
+        else:
+            error_message = f"{err}"
         logger.error("Database ping failed: %s", error_message)
         return False, error_message
     except Exception as err:  # noqa: BLE001
