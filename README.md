@@ -49,6 +49,24 @@ Rekomendasi singkat: lakukan build dari dalam *virtual environment* bersih agar 
 4. Jika lokasi Chrome atau aplikasi BPJS berbeda dari default, perbarui nilainya di `app/config.py` sebelum menjalankan PyInstaller agar ikut tertanam di executable.
 5. Uji hasil build pada mesin Windows target dengan membuka `dist/PencarianPasien.exe`. Pastikan dependency eksternal (Chrome dan aplikasi BPJS) sudah terpasang di mesin pengguna.
 
+## Alternatif build Windows dengan py2exe
+
+Jika lebih nyaman memakai `py2exe`, skrip `setup_py2exe.py` sudah disiapkan agar modul `mysql.connector` dan folder `assets` ikut dibawa.
+
+1. Aktifkan virtual environment (opsional tapi disarankan) dan pasang py2exe:
+   ```bash
+   pip install -r requirements.txt
+   pip install py2exe
+   ```
+2. Jalankan build dari akar repo:
+   ```bash
+   python setup_py2exe.py py2exe --bundle 1 --dist-dir dist_py2exe
+   ```
+   Keterangan:
+   - `--bundle 1` menghasilkan satu executable (mirip opsi `--onefile` di PyInstaller). Hilangkan jika lebih suka output folder.
+   - Hasil build ada di `dist_py2exe/`; folder `assets` ikut disalin supaya logo/gambar tersedia saat runtime.
+3. Uji `dist_py2exe/PencarianPasien.exe` di mesin target. Pastikan MySQL server dapat diakses dan plugin `mysql_native_password` sudah diaktifkan sesuai panduan sebelumnya.
+
 ## Catatan tambahan
 
 - Pada saat runtime, aplikasi akan membuka jendela Chrome di sisi kanan layar dan jendela Tkinter di sisi kiri dengan lebar 50% layar serta tinggi penuh.
