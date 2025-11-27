@@ -193,12 +193,21 @@ class PatientApp:
         else:
             self.internet_status.config(text="Internet: Tidak Terhubung", fg="red")
 
-        connection_ok = database.ping_database()
+        connection_ok, db_error = database.ping_database()
 
         if connection_ok:
             self.db_status.config(text="Database: Tersedia", fg="green")
         else:
             self.db_status.config(text="Database: Tidak Tersedia", fg="red")
+            if db_error:
+                messagebox.showerror(
+                    "Database Error",
+                    (
+                        "Aplikasi tidak dapat terhubung ke database.\n"
+                        f"Detail: {db_error}\n"
+                        f"Log kesalahan: {database.ERROR_LOG_PATH}"
+                    ),
+                )
 
     def search_patient(self):
         no_rm = self.no_rm_var.get().strip()

@@ -1,5 +1,7 @@
 """Database helpers for patient lookup."""
 from contextlib import contextmanager
+import logging
+from pathlib import Path
 from typing import Iterable, Optional, Tuple
 
 import mysql.connector
@@ -10,13 +12,31 @@ from app.config import DB_CONFIG
 PatientRow = Tuple
 RegistrationRow = Tuple
 
+ERROR_LOG_PATH = Path.home() / "apm_db_errors.log"
 
-def ping_database() -> bool:
+logger = logging.getLogger(__name__)
+if not logger.handlers:
+    logger.setLevel(logging.INFO)
+    file_handler = logging.FileHandler(ERROR_LOG_PATH, encoding="utf-8")
+    formatter = logging.Formatter(
+        "%(asctime)s - %(levelname)s - %(name)s - %(message)s"
+    )
+    file_handler.setFormatter(formatter)
+    logger.addHandler(file_handler)
+
+
+def ping_database() -> tuple[bool, Optional[str]]:
     try:
         with mysql_connection():
-            return True
-    except mysql.connector.Error:
-        return False
+            return True, None
+    except mysql.connector.Error as err:
+        error_message = f"{err}"
+        logger.error("Database ping failed: %s", error_message)
+        return False, error_message
+    except Exception as err:  # noqa: BLE001
+        error_message = f"Kesalahan tidak terduga: {err}"
+        logger.exception(error_message)
+        return False, error_message
 
 
 @contextmanager
