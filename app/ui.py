@@ -4,7 +4,7 @@ import threading
 import tkinter as tk
 from tkinter import messagebox
 import sys
-import os
+from pathlib import Path
 
 from app import bpjs, database, network
 from app.config import CHECKIN_URL, CHROME_EXECUTABLE
@@ -21,18 +21,18 @@ class PatientApp:
         self.half_screen_width = max(self.screen_width // 2, 1)
         self.root.geometry(f"{self.half_screen_width}x{self.screen_height}+0+0")
 
-        # Menentukan lokasi assets
-        if getattr(sys, 'frozen', False):
-            # Jika aplikasi dijalankan sebagai file bundel (.exe)
-            bundle_dir = sys._MEIPASS
-        else:
-            # Jika aplikasi dijalankan dari source code
-            bundle_dir = os.path.dirname(os.path.abspath(__file__))
+        # Menentukan lokasi assets (mendukung PyInstaller & py2exe)
+        if getattr(sys, "_MEIPASS", None):  # PyInstaller
+            assets_root = Path(sys._MEIPASS)
+        elif getattr(sys, "frozen", False):  # py2exe atau exe lain
+            assets_root = Path(sys.executable).resolve().parent
+        else:  # saat pengembangan
+            assets_root = Path(__file__).resolve().parent.parent
 
         # Path lengkap ke file gambar
-        image_path = os.path.join(bundle_dir, 'assets', 'logo_dua.png')
+        image_path = (assets_root / "assets" / "logo_dua.png").resolve()
 
-        self.logo_image = tk.PhotoImage(file=image_path)
+        self.logo_image = tk.PhotoImage(file=str(image_path))
 
         self.root.iconphoto(False, self.logo_image)
 
@@ -193,12 +193,21 @@ class PatientApp:
         else:
             self.internet_status.config(text="Internet: Tidak Terhubung", fg="red")
 
-        connection_ok = database.ping_database()
+        connection_ok, db_error = database.ping_database()
 
         if connection_ok:
             self.db_status.config(text="Database: Tersedia", fg="green")
         else:
             self.db_status.config(text="Database: Tidak Tersedia", fg="red")
+            if db_error:
+                messagebox.showerror(
+                    "Database Error",
+                    (
+                        "Aplikasi tidak dapat terhubung ke database.\n"
+                        f"Detail: {db_error}\n"
+                        f"Log kesalahan: {database.ERROR_LOG_PATH}"
+                    ),
+                )
 
     def search_patient(self):
         no_rm = self.no_rm_var.get().strip()
