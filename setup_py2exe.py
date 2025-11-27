@@ -1,19 +1,27 @@
 import os
+from pathlib import Path
 from setuptools import setup
 
+BASE_DIR = Path(__file__).resolve().parent
 
-def collect_assets(base_dir: str = "assets"):
+
+def collect_assets(base_dir: Path = BASE_DIR / "assets"):
+    """Collect asset files so py2exe copies them next to the executable."""
+
     data = []
-    if not os.path.isdir(base_dir):
+    if not base_dir.is_dir():
         return data
 
     for root, _, files in os.walk(base_dir):
         if not files:
             continue
-        rel_root = os.path.relpath(root, base_dir)
-        target_dir = os.path.join(base_dir, rel_root) if rel_root != "." else base_dir
-        source_paths = [os.path.join(root, f) for f in files]
-        data.append((target_dir, source_paths))
+
+        root_path = Path(root)
+        rel_root = root_path.relative_to(base_dir)
+        target_dir = Path("assets") / rel_root if rel_root != Path(".") else Path("assets")
+        source_paths = [str(root_path / f) for f in files]
+        data.append((str(target_dir), source_paths))
+
     return data
 
 

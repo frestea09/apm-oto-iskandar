@@ -51,20 +51,21 @@ Rekomendasi singkat: lakukan build dari dalam *virtual environment* bersih agar 
 
 ## Alternatif build Windows dengan py2exe
 
-Jika lebih nyaman memakai `py2exe`, skrip `setup_py2exe.py` sudah disiapkan agar modul `mysql.connector` dan folder `assets` ikut dibawa.
+Jika lebih nyaman memakai `py2exe`, skrip `setup_py2exe.py` sudah disiapkan agar modul `mysql.connector` dan folder `assets` ikut dibawa dalam output. Jalankan perintah berikut di Command Prompt/PowerShell Windows dari akar repo.
 
 1. Aktifkan virtual environment (opsional tapi disarankan) dan pasang py2exe:
    ```bash
    pip install -r requirements.txt
    pip install py2exe
    ```
-2. Jalankan build dari akar repo:
+2. Jalankan build:
    ```bash
    python setup_py2exe.py py2exe --bundle 1 --dist-dir dist_py2exe
    ```
    Keterangan:
-   - `--bundle 1` menghasilkan satu executable (mirip opsi `--onefile` di PyInstaller). Hilangkan jika lebih suka output folder.
-   - Hasil build ada di `dist_py2exe/`; folder `assets` ikut disalin supaya logo/gambar tersedia saat runtime.
+   - `--bundle 1` menghasilkan satu executable (mirip opsi `--onefile` di PyInstaller). Hilangkan opsi ini jika ingin melihat file-file dependency terpisah.
+   - Output tersalin ke folder `dist_py2exe/` dengan struktur `PencarianPasien.exe` dan subfolder `assets` di sampingnya agar logo/gambar terbaca.
+   - Jika ingin build ulang yang bersih, hapus folder `build/` dan `dist_py2exe/` sebelum menjalankan perintah di atas.
 3. Uji `dist_py2exe/PencarianPasien.exe` di mesin target. Pastikan MySQL server dapat diakses dan plugin `mysql_native_password` sudah diaktifkan sesuai panduan sebelumnya.
 
 ## Catatan tambahan
