@@ -76,3 +76,6 @@ Jika lebih nyaman memakai `py2exe`, skrip `setup_py2exe.py` sudah disiapkan agar
 
 - Pada saat runtime, aplikasi akan membuka jendela Chrome di sisi kanan layar dan jendela Tkinter di sisi kiri dengan lebar 50% layar serta tinggi penuh.
 - Untuk menguji build, jalankan langsung file `.exe` pada mesin Windows yang memiliki resolusi layar yang cukup agar kedua jendela bisa tampil berdampingan.
+- Jika log menunjukkan `Authentication plugin 'mysql_native_password' cannot be loaded` atau server sudah memperingatkan bahwa plugin tersebut akan dihapus, sesuaikan dengan salah satu langkah berikut:
+  - Opsi disarankan: ikuti default server modern dengan plugin `caching_sha2_password`. Set environment `APM_DB_AUTH_PLUGIN=caching_sha2_password` sebelum menjalankan atau membundel, lalu ubah user MySQL yang dipakai aplikasi: `ALTER USER '<user>'@'%' IDENTIFIED WITH caching_sha2_password BY '<password>'; FLUSH PRIVILEGES;`.
+  - Opsi kompatibilitas: jika tetap ingin `mysql_native_password`, pastikan plugin itu aktif di server dan jalankan `ALTER USER '<user>'@'%' IDENTIFIED WITH mysql_native_password BY '<password>'; FLUSH PRIVILEGES;`. Pastikan restart MySQL jika mengubah `default_authentication_plugin` di `my.cnf`.

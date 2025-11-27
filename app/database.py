@@ -36,12 +36,12 @@ def ping_database() -> tuple[bool, Optional[str]]:
         err_str = str(err)
         if err.errno == 2059 and "mysql_native_password" in err_str:
             error_message = (
-                "Plugin autentikasi mysql_native_password belum aktif di server. "
-                "Anda bisa mengubah user MySQL menjadi mysql_native_password atau beralih ke plugin baru "
-                "dengan set env APM_DB_AUTH_PLUGIN=caching_sha2_password agar aplikasi menyesuaikan server. "
-                "Di server Ubuntu, login (sudo mysql -u root -p) lalu jalankan: "
-                "ALTER USER '<user>'@'%' IDENTIFIED WITH mysql_native_password BY '<password>'; FLUSH PRIVILEGES; "
-                "atau gunakan caching_sha2_password sesuai default server. Connector sudah dibundel."
+                "Plugin autentikasi mysql_native_password tidak tersedia di server. "
+                "Sesuaikan server atau aplikasi: (1) set env APM_DB_AUTH_PLUGIN=caching_sha2_password lalu pastikan user MySQL "
+                "dipindah ke plugin tersebut: ALTER USER '<user>'@'%' IDENTIFIED WITH caching_sha2_password BY '<password>'; "
+                "FLUSH PRIVILEGES; atau (2) jika tetap ingin mysql_native_password, aktifkan plugin itu di server dan jalankan "
+                "ALTER USER '<user>'@'%' IDENTIFIED WITH mysql_native_password BY '<password>'; FLUSH PRIVILEGES;. Connector "
+                "sudah dibundel di aplikasi."
             )
         elif err.errno == 2059 and "caching_sha2_password" in err_str:
             error_message = (
