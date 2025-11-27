@@ -36,6 +36,8 @@ setup(
     name="PencarianPasien",
     version="1.0.0",
     description="Bundled executable for aplikasi pencarian pasien RSUD Oto Iskandar Dinata",
+    packages=["app"],
+    py_modules=["main"],
     windows=[{"script": "main.py"}],
     options={
         "py2exe": {

@@ -68,6 +68,7 @@ Jika lebih nyaman memakai `py2exe`, skrip `setup_py2exe.py` sudah disiapkan agar
    Keterangan:
    - `--bundle 1` menghasilkan satu executable (mirip opsi `--onefile` di PyInstaller). Hilangkan opsi ini jika ingin melihat file-file dependency terpisah.
    - Output tersalin ke folder `dist_py2exe/` dengan struktur `PencarianPasien.exe` dan subfolder `assets` di sampingnya agar logo/gambar terbaca.
+   - Skrip `setup_py2exe.py` kini hanya mendaftarkan paket `app` dan modul `main` sehingga pesan "Multiple top-level packages discovered" tidak muncul walau ada folder lain di akar repo (mis. `assets`).
    - Jika ingin build ulang yang bersih, hapus folder `build/` dan `dist_py2exe/` sebelum menjalankan perintah di atas.
 3. Uji `dist_py2exe/PencarianPasien.exe` di mesin target. Pastikan MySQL server dapat diakses dan plugin `mysql_native_password` sudah diaktifkan sesuai panduan sebelumnya.
 
