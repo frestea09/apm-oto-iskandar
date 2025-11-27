@@ -6,6 +6,8 @@ DB_CONFIG = {
     "password": "s1mrs234@",
     "database": "otista_dev",
     "port": 3306,
+    # Pastikan menggunakan plugin autentikasi bawaan yang didukung pyinstaller
+    "auth_plugin": "mysql_native_password",
 }
 
 BPJS_EXECUTABLE = r"C:\\Program Files (x86)\\BPJS Kesehatan\\Aplikasi Sidik Jari BPJS Kesehatan\\After.exe"
