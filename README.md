@@ -58,6 +58,8 @@ Jika lebih nyaman memakai `py2exe`, skrip `setup_py2exe.py` sudah disiapkan agar
    pip install -r requirements.txt
    pip install py2exe
    ```
+   Jika muncul pesan `error: invalid command 'py2exe'` atau peringatan opsi distribusi
+   tidak dikenal, pastikan perintah di atas sudah dijalankan pada Python Windows.
 2. Jalankan build:
    ```bash
    python setup_py2exe.py py2exe --bundle 1 --dist-dir dist_py2exe

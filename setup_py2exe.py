@@ -2,6 +2,13 @@ import os
 from pathlib import Path
 from setuptools import setup
 
+try:
+    import py2exe  # noqa: F401
+except ImportError:  # pragma: no cover
+    raise SystemExit(
+        "py2exe belum terpasang. Jalankan `pip install py2exe` di Windows lalu ulangi perintah build."
+    )
+
 BASE_DIR = Path(__file__).resolve().parent
 
 
