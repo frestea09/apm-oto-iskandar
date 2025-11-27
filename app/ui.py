@@ -3,6 +3,8 @@ import subprocess
 import threading
 import tkinter as tk
 from tkinter import messagebox
+import sys
+import os
 
 from app import bpjs, database, network
 from app.config import CHECKIN_URL, CHROME_EXECUTABLE
@@ -19,7 +21,19 @@ class PatientApp:
         self.half_screen_width = max(self.screen_width // 2, 1)
         self.root.geometry(f"{self.half_screen_width}x{self.screen_height}+0+0")
 
-        self.logo_image = tk.PhotoImage(file="assets/logo_dua.png")
+        # Menentukan lokasi assets
+        if getattr(sys, 'frozen', False):
+            # Jika aplikasi dijalankan sebagai file bundel (.exe)
+            bundle_dir = sys._MEIPASS
+        else:
+            # Jika aplikasi dijalankan dari source code
+            bundle_dir = os.path.dirname(os.path.abspath(__file__))
+
+        # Path lengkap ke file gambar
+        image_path = os.path.join(bundle_dir, 'assets', 'logo_dua.png')
+
+        self.logo_image = tk.PhotoImage(file=image_path)
+
         self.root.iconphoto(False, self.logo_image)
 
         self.no_rm_var = tk.StringVar()
