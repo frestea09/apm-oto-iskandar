@@ -183,6 +183,17 @@ class PatientApp:
         )
         self.open_frista_folder_button.grid(row=2, column=0, columnspan=2, padx=8, pady=(6, 2))
 
+        self.choose_frista_folder_button = tk.Button(
+            action_frame,
+            text="Pilih Folder Frista...",
+            font=("Helvetica", 12, "bold"),
+            width=25,
+            height=2,
+            bg="#d8e8ff",
+            command=self.choose_frista_folder,
+        )
+        self.choose_frista_folder_button.grid(row=3, column=0, columnspan=2, padx=8, pady=(6, 2))
+
         loading_label = tk.Label(
             self.root,
             textvariable=self.loading_var,
@@ -301,6 +312,7 @@ class PatientApp:
         self.open_bpjs_button.config(state=state)
         self.open_checkin_portal_button.config(state=state)
         self.open_frista_folder_button.config(state=state)
+        self.choose_frista_folder_button.config(state=state)
         for button in self._keypad_buttons:
             button.config(state=state)
         self.root.update_idletasks()
@@ -428,3 +440,24 @@ class PatientApp:
             )
         except Exception as error:  # noqa: BLE001
             messagebox.showerror("Error", f"Tidak dapat membuka folder: {error}")
+
+    def choose_frista_folder(self):
+        def _initial_dir_from(value: str) -> Path:
+            try:
+                candidate = Path(value).expanduser()
+                if candidate.is_file():
+                    return candidate.parent
+                if candidate.exists():
+                    return candidate
+            except OSError:
+                pass
+            return Path.home()
+
+        def _clean_path(path_value: str) -> str:
+            return path_value.replace("\\\\", "\\").strip()
+
+        initial_dir = _initial_dir_from(config.FRISTA_FOLDER)
+        selected = filedialog.askdirectory(initialdir=str(initial_dir))
+        if selected:
+            config.FRISTA_FOLDER = _clean_path(selected)
+            messagebox.showinfo("Folder Diperbarui", "Folder Frista berhasil dipilih.")
