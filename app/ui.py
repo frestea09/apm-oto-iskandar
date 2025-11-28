@@ -6,7 +6,7 @@ from tkinter import filedialog, messagebox
 import sys
 from pathlib import Path
 
-from app import bpjs, config, database, network
+from app import bpjs, config, database, frista, network
 
 
 class PatientApp:
@@ -272,7 +272,19 @@ class PatientApp:
         self._run_bpjs_action(lambda: bpjs.open_bpjs_for_identifier(identifier), "Membuka aplikasi BPJS...")
 
     def open_checkin_portal(self):
-        self._run_bpjs_action(self._launch_checkin_portal, "Membuka sistem pendaftaran...")
+        self._run_action(self._launch_checkin_portal, "Membuka sistem pendaftaran...")
+
+    def open_frista_application(self):
+        identifier = self.no_rm_var.get().strip()
+        if not identifier:
+            messagebox.showwarning("Input Error", "Masukkan NIK atau identitas pasien terlebih dahulu.")
+            return
+
+        self._run_action(
+            lambda: frista.open_frista_for_identifier(identifier),
+            "Membuka Frista...",
+            frista.handle_automation_error,
+        )
 
     def _launch_checkin_portal(self):
         window_position = f"--window-position={self.half_screen_width},0"
@@ -287,18 +299,24 @@ class PatientApp:
             ]
         )
 
-    def _run_bpjs_action(self, action, message: str):
+    def _run_action(self, action, message: str, on_error=None):
         self._set_loading_state(True, message)
 
         def task():
             try:
                 action()
             except Exception as error:  # noqa: BLE001
-                bpjs.handle_automation_error(error)
+                if on_error:
+                    on_error(error)
+                else:
+                    messagebox.showerror("Error", f"Terjadi kesalahan: {error}")
             finally:
                 self.root.after(0, lambda: self._set_loading_state(False))
 
         threading.Thread(target=task, daemon=True).start()
+
+    def _run_bpjs_action(self, action, message: str):
+        self._run_action(action, message, bpjs.handle_automation_error)
 
     def _set_loading_state(self, is_loading: bool, message: str | None = None):
         if is_loading:
@@ -352,6 +370,8 @@ class PatientApp:
             "Chrome Executable": tk.StringVar(value=config.CHROME_EXECUTABLE),
             "URL Sistem Pendaftaran": tk.StringVar(value=config.CHECKIN_URL),
             "Frista Executable": tk.StringVar(value=config.FRISTA_EXECUTABLE),
+            "Frista Username": tk.StringVar(value=config.FRISTA_USERNAME),
+            "Frista Password": tk.StringVar(value=config.FRISTA_PASSWORD),
         }
 
         content = tk.Frame(dialog, padx=10, pady=10)
@@ -410,6 +430,8 @@ class PatientApp:
             config.CHROME_EXECUTABLE = _clean_path(entries["Chrome Executable"].get())
             config.CHECKIN_URL = entries["URL Sistem Pendaftaran"].get()
             config.FRISTA_EXECUTABLE = _clean_path(entries["Frista Executable"].get())
+            config.FRISTA_USERNAME = entries["Frista Username"].get()
+            config.FRISTA_PASSWORD = entries["Frista Password"].get()
             messagebox.showinfo("Pengaturan", "Konfigurasi berhasil diperbarui.")
             dialog.destroy()
 
@@ -418,17 +440,6 @@ class PatientApp:
 
         close_button = tk.Button(button_frame, text="Tutup", command=dialog.destroy, width=12)
         close_button.pack(side=tk.LEFT, padx=6)
-
-    def open_frista_application(self):
-        try:
-            subprocess.Popen([config.FRISTA_EXECUTABLE])
-        except FileNotFoundError:
-            messagebox.showerror(
-                "File Tidak Ditemukan",
-                "Executable Frista tidak ditemukan. Periksa pengaturan.",
-            )
-        except Exception as error:  # noqa: BLE001
-            messagebox.showerror("Error", f"Tidak dapat membuka Frista: {error}")
 
     def choose_frista_executable(self):
         def _initial_dir_from(value: str) -> Path:
