@@ -172,27 +172,27 @@ class PatientApp:
         )
         self.open_checkin_portal_button.grid(row=1, column=0, columnspan=2, padx=8, pady=(6, 2))
 
-        self.open_frista_folder_button = tk.Button(
+        self.open_frista_button = tk.Button(
             action_frame,
-            text="Buka Folder Frista",
+            text="Buka Frista",
             font=("Helvetica", 12, "bold"),
             width=25,
             height=2,
             bg="#e8d2ff",
-            command=self.open_frista_folder,
+            command=self.open_frista_application,
         )
-        self.open_frista_folder_button.grid(row=2, column=0, columnspan=2, padx=8, pady=(6, 2))
+        self.open_frista_button.grid(row=2, column=0, columnspan=2, padx=8, pady=(6, 2))
 
-        self.choose_frista_folder_button = tk.Button(
+        self.choose_frista_button = tk.Button(
             action_frame,
-            text="Pilih Folder Frista...",
+            text="Pilih Frista...",
             font=("Helvetica", 12, "bold"),
             width=25,
             height=2,
             bg="#d8e8ff",
-            command=self.choose_frista_folder,
+            command=self.choose_frista_executable,
         )
-        self.choose_frista_folder_button.grid(row=3, column=0, columnspan=2, padx=8, pady=(6, 2))
+        self.choose_frista_button.grid(row=3, column=0, columnspan=2, padx=8, pady=(6, 2))
 
         loading_label = tk.Label(
             self.root,
@@ -311,8 +311,8 @@ class PatientApp:
         self.search_button.config(state=state)
         self.open_bpjs_button.config(state=state)
         self.open_checkin_portal_button.config(state=state)
-        self.open_frista_folder_button.config(state=state)
-        self.choose_frista_folder_button.config(state=state)
+        self.open_frista_button.config(state=state)
+        self.choose_frista_button.config(state=state)
         for button in self._keypad_buttons:
             button.config(state=state)
         self.root.update_idletasks()
@@ -351,7 +351,7 @@ class PatientApp:
             "BPJS Password": tk.StringVar(value=config.BPJS_PASSWORD),
             "Chrome Executable": tk.StringVar(value=config.CHROME_EXECUTABLE),
             "URL Sistem Pendaftaran": tk.StringVar(value=config.CHECKIN_URL),
-            "Folder Frista": tk.StringVar(value=config.FRISTA_FOLDER),
+            "Frista Executable": tk.StringVar(value=config.FRISTA_EXECUTABLE),
         }
 
         content = tk.Frame(dialog, padx=10, pady=10)
@@ -373,13 +373,10 @@ class PatientApp:
 
         def choose_file(var: tk.StringVar):
             initial_dir = _initial_dir_from(var)
-            selected = filedialog.askopenfilename(initialdir=str(initial_dir))
-            if selected:
-                var.set(_clean_path(selected))
-
-        def choose_folder(var: tk.StringVar):
-            initial_dir = _initial_dir_from(var)
-            selected = filedialog.askdirectory(initialdir=str(initial_dir))
+            selected = filedialog.askopenfilename(
+                initialdir=str(initial_dir),
+                filetypes=[("Executable", "*.exe"), ("All Files", "*.*")],
+            )
             if selected:
                 var.set(_clean_path(selected))
 
@@ -394,19 +391,11 @@ class PatientApp:
             entry = tk.Entry(entry_frame, textvariable=var, width=55)
             entry.grid(row=0, column=0, sticky="we")
 
-            if label_text in {"BPJS Executable", "Chrome Executable"}:
+            if label_text in {"BPJS Executable", "Chrome Executable", "Frista Executable"}:
                 browse_button = tk.Button(
                     entry_frame,
                     text="Browse...",
                     command=lambda v=var: choose_file(v),
-                    width=10,
-                )
-                browse_button.grid(row=0, column=1, padx=(6, 0))
-            elif label_text == "Folder Frista":
-                browse_button = tk.Button(
-                    entry_frame,
-                    text="Browse...",
-                    command=lambda v=var: choose_folder(v),
                     width=10,
                 )
                 browse_button.grid(row=0, column=1, padx=(6, 0))
@@ -420,7 +409,7 @@ class PatientApp:
             config.BPJS_PASSWORD = entries["BPJS Password"].get()
             config.CHROME_EXECUTABLE = _clean_path(entries["Chrome Executable"].get())
             config.CHECKIN_URL = entries["URL Sistem Pendaftaran"].get()
-            config.FRISTA_FOLDER = _clean_path(entries["Folder Frista"].get())
+            config.FRISTA_EXECUTABLE = _clean_path(entries["Frista Executable"].get())
             messagebox.showinfo("Pengaturan", "Konfigurasi berhasil diperbarui.")
             dialog.destroy()
 
@@ -430,18 +419,18 @@ class PatientApp:
         close_button = tk.Button(button_frame, text="Tutup", command=dialog.destroy, width=12)
         close_button.pack(side=tk.LEFT, padx=6)
 
-    def open_frista_folder(self):
+    def open_frista_application(self):
         try:
-            subprocess.Popen(["explorer", config.FRISTA_FOLDER])
+            subprocess.Popen([config.FRISTA_EXECUTABLE])
         except FileNotFoundError:
             messagebox.showerror(
-                "Explorer Tidak Ditemukan",
-                "Windows Explorer tidak tersedia di sistem ini.",
+                "File Tidak Ditemukan",
+                "Executable Frista tidak ditemukan. Periksa pengaturan.",
             )
         except Exception as error:  # noqa: BLE001
-            messagebox.showerror("Error", f"Tidak dapat membuka folder: {error}")
+            messagebox.showerror("Error", f"Tidak dapat membuka Frista: {error}")
 
-    def choose_frista_folder(self):
+    def choose_frista_executable(self):
         def _initial_dir_from(value: str) -> Path:
             try:
                 candidate = Path(value).expanduser()
@@ -456,8 +445,11 @@ class PatientApp:
         def _clean_path(path_value: str) -> str:
             return path_value.replace("\\\\", "\\").strip()
 
-        initial_dir = _initial_dir_from(config.FRISTA_FOLDER)
-        selected = filedialog.askdirectory(initialdir=str(initial_dir))
+        initial_dir = _initial_dir_from(config.FRISTA_EXECUTABLE)
+        selected = filedialog.askopenfilename(
+            initialdir=str(initial_dir),
+            filetypes=[("Executable", "*.exe"), ("All Files", "*.*")],
+        )
         if selected:
-            config.FRISTA_FOLDER = _clean_path(selected)
-            messagebox.showinfo("Folder Diperbarui", "Folder Frista berhasil dipilih.")
+            config.FRISTA_EXECUTABLE = _clean_path(selected)
+            messagebox.showinfo("Pengaturan Diperbarui", "Lokasi Frista berhasil dipilih.")
