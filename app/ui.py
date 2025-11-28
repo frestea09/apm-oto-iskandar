@@ -6,8 +6,7 @@ from tkinter import messagebox
 import sys
 from pathlib import Path
 
-from app import bpjs, database, network
-from app.config import CHECKIN_URL, CHROME_EXECUTABLE
+from app import bpjs, config, database, network
 
 
 class PatientApp:
@@ -39,6 +38,8 @@ class PatientApp:
         self.no_rm_var = tk.StringVar()
         self.loading_var = tk.StringVar(value="")
         self._keypad_buttons: list[tk.Button] = []
+
+        self._create_menu()
 
         self._build_inputs()
         self._build_status()
@@ -171,6 +172,17 @@ class PatientApp:
         )
         self.open_checkin_portal_button.grid(row=1, column=0, columnspan=2, padx=8, pady=(6, 2))
 
+        self.open_frista_folder_button = tk.Button(
+            action_frame,
+            text="Buka Folder Frista",
+            font=("Helvetica", 12, "bold"),
+            width=25,
+            height=2,
+            bg="#e8d2ff",
+            command=self.open_frista_folder,
+        )
+        self.open_frista_folder_button.grid(row=2, column=0, columnspan=2, padx=8, pady=(6, 2))
+
         loading_label = tk.Label(
             self.root,
             textvariable=self.loading_var,
@@ -256,11 +268,11 @@ class PatientApp:
         window_size = f"--window-size={self.half_screen_width},{self.screen_height}"
         subprocess.Popen(
             [
-                CHROME_EXECUTABLE,
+                config.CHROME_EXECUTABLE,
                 window_position,
                 window_size,
                 "--new-window",
-                CHECKIN_URL,
+                config.CHECKIN_URL,
             ]
         )
 
@@ -288,6 +300,7 @@ class PatientApp:
         self.search_button.config(state=state)
         self.open_bpjs_button.config(state=state)
         self.open_checkin_portal_button.config(state=state)
+        self.open_frista_folder_button.config(state=state)
         for button in self._keypad_buttons:
             button.config(state=state)
         self.root.update_idletasks()
@@ -305,3 +318,65 @@ class PatientApp:
     def _clear_input(self):
         self.no_rm_var.set("")
         self.no_rm_entry.icursor(tk.END)
+
+    def _create_menu(self):
+        menubar = tk.Menu(self.root)
+        config_menu = tk.Menu(menubar, tearoff=0)
+        config_menu.add_command(label="Pengaturan...", command=self._open_config_dialog)
+        menubar.add_cascade(label="Config", menu=config_menu)
+        self.root.config(menu=menubar)
+        self._menubar = menubar
+
+    def _open_config_dialog(self):
+        dialog = tk.Toplevel(self.root)
+        dialog.title("Pengaturan")
+        dialog.transient(self.root)
+        dialog.grab_set()
+
+        entries = {
+            "BPJS Executable": tk.StringVar(value=config.BPJS_EXECUTABLE),
+            "BPJS Username": tk.StringVar(value=config.BPJS_USERNAME),
+            "BPJS Password": tk.StringVar(value=config.BPJS_PASSWORD),
+            "Chrome Executable": tk.StringVar(value=config.CHROME_EXECUTABLE),
+            "URL Sistem Pendaftaran": tk.StringVar(value=config.CHECKIN_URL),
+            "Folder Frista": tk.StringVar(value=config.FRISTA_FOLDER),
+        }
+
+        content = tk.Frame(dialog, padx=10, pady=10)
+        content.pack(fill=tk.BOTH, expand=True)
+
+        for index, (label_text, var) in enumerate(entries.items()):
+            label = tk.Label(content, text=label_text, anchor="w")
+            label.grid(row=index, column=0, sticky="w", pady=4, padx=(0, 8))
+            entry = tk.Entry(content, textvariable=var, width=55)
+            entry.grid(row=index, column=1, sticky="we", pady=4)
+
+        button_frame = tk.Frame(content)
+        button_frame.grid(row=len(entries), column=0, columnspan=2, pady=(12, 0))
+
+        def save_config():
+            config.BPJS_EXECUTABLE = entries["BPJS Executable"].get()
+            config.BPJS_USERNAME = entries["BPJS Username"].get()
+            config.BPJS_PASSWORD = entries["BPJS Password"].get()
+            config.CHROME_EXECUTABLE = entries["Chrome Executable"].get()
+            config.CHECKIN_URL = entries["URL Sistem Pendaftaran"].get()
+            config.FRISTA_FOLDER = entries["Folder Frista"].get()
+            messagebox.showinfo("Pengaturan", "Konfigurasi berhasil diperbarui.")
+            dialog.destroy()
+
+        save_button = tk.Button(button_frame, text="Simpan", command=save_config, width=12)
+        save_button.pack(side=tk.LEFT, padx=6)
+
+        close_button = tk.Button(button_frame, text="Tutup", command=dialog.destroy, width=12)
+        close_button.pack(side=tk.LEFT, padx=6)
+
+    def open_frista_folder(self):
+        try:
+            subprocess.Popen(["explorer", config.FRISTA_FOLDER])
+        except FileNotFoundError:
+            messagebox.showerror(
+                "Explorer Tidak Ditemukan",
+                "Windows Explorer tidak tersedia di sistem ini.",
+            )
+        except Exception as error:  # noqa: BLE001
+            messagebox.showerror("Error", f"Tidak dapat membuka folder: {error}")
