@@ -2,7 +2,7 @@
 import subprocess
 import threading
 import tkinter as tk
-from tkinter import messagebox
+from tkinter import filedialog, messagebox
 import sys
 from pathlib import Path
 
@@ -345,11 +345,45 @@ class PatientApp:
         content = tk.Frame(dialog, padx=10, pady=10)
         content.pack(fill=tk.BOTH, expand=True)
 
+        def choose_file(var: tk.StringVar):
+            initial_dir = Path(var.get()).expanduser().resolve()
+            selected = filedialog.askopenfilename(initialdir=str(initial_dir))
+            if selected:
+                var.set(selected)
+
+        def choose_folder(var: tk.StringVar):
+            initial_dir = Path(var.get()).expanduser().resolve()
+            selected = filedialog.askdirectory(initialdir=str(initial_dir))
+            if selected:
+                var.set(selected)
+
         for index, (label_text, var) in enumerate(entries.items()):
             label = tk.Label(content, text=label_text, anchor="w")
             label.grid(row=index, column=0, sticky="w", pady=4, padx=(0, 8))
-            entry = tk.Entry(content, textvariable=var, width=55)
-            entry.grid(row=index, column=1, sticky="we", pady=4)
+
+            entry_frame = tk.Frame(content)
+            entry_frame.grid(row=index, column=1, sticky="we", pady=4)
+            entry_frame.grid_columnconfigure(0, weight=1)
+
+            entry = tk.Entry(entry_frame, textvariable=var, width=55)
+            entry.grid(row=0, column=0, sticky="we")
+
+            if label_text in {"BPJS Executable", "Chrome Executable"}:
+                browse_button = tk.Button(
+                    entry_frame,
+                    text="Browse...",
+                    command=lambda v=var: choose_file(v),
+                    width=10,
+                )
+                browse_button.grid(row=0, column=1, padx=(6, 0))
+            elif label_text == "Folder Frista":
+                browse_button = tk.Button(
+                    entry_frame,
+                    text="Browse...",
+                    command=lambda v=var: choose_folder(v),
+                    width=10,
+                )
+                browse_button.grid(row=0, column=1, padx=(6, 0))
 
         button_frame = tk.Frame(content)
         button_frame.grid(row=len(entries), column=0, columnspan=2, pady=(12, 0))
