@@ -345,17 +345,31 @@ class PatientApp:
         content = tk.Frame(dialog, padx=10, pady=10)
         content.pack(fill=tk.BOTH, expand=True)
 
+        def _initial_dir_from(var: tk.StringVar) -> Path:
+            try:
+                candidate = Path(var.get()).expanduser()
+                if candidate.is_file():
+                    return candidate.parent
+                if candidate.exists():
+                    return candidate
+            except OSError:
+                pass
+            return Path.home()
+
+        def _clean_path(value: str) -> str:
+            return value.replace("\\\\", "\\").strip()
+
         def choose_file(var: tk.StringVar):
-            initial_dir = Path(var.get()).expanduser().resolve()
+            initial_dir = _initial_dir_from(var)
             selected = filedialog.askopenfilename(initialdir=str(initial_dir))
             if selected:
-                var.set(selected)
+                var.set(_clean_path(selected))
 
         def choose_folder(var: tk.StringVar):
-            initial_dir = Path(var.get()).expanduser().resolve()
+            initial_dir = _initial_dir_from(var)
             selected = filedialog.askdirectory(initialdir=str(initial_dir))
             if selected:
-                var.set(selected)
+                var.set(_clean_path(selected))
 
         for index, (label_text, var) in enumerate(entries.items()):
             label = tk.Label(content, text=label_text, anchor="w")
@@ -389,12 +403,12 @@ class PatientApp:
         button_frame.grid(row=len(entries), column=0, columnspan=2, pady=(12, 0))
 
         def save_config():
-            config.BPJS_EXECUTABLE = entries["BPJS Executable"].get()
+            config.BPJS_EXECUTABLE = _clean_path(entries["BPJS Executable"].get())
             config.BPJS_USERNAME = entries["BPJS Username"].get()
             config.BPJS_PASSWORD = entries["BPJS Password"].get()
-            config.CHROME_EXECUTABLE = entries["Chrome Executable"].get()
+            config.CHROME_EXECUTABLE = _clean_path(entries["Chrome Executable"].get())
             config.CHECKIN_URL = entries["URL Sistem Pendaftaran"].get()
-            config.FRISTA_FOLDER = entries["Folder Frista"].get()
+            config.FRISTA_FOLDER = _clean_path(entries["Folder Frista"].get())
             messagebox.showinfo("Pengaturan", "Konfigurasi berhasil diperbarui.")
             dialog.destroy()
 
