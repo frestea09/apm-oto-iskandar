@@ -183,16 +183,16 @@ class PatientApp:
         )
         self.open_frista_button.grid(row=2, column=0, columnspan=2, padx=8, pady=(6, 2))
 
-        self.choose_frista_button = tk.Button(
-            action_frame,
-            text="Pilih Frista...",
-            font=("Helvetica", 12, "bold"),
-            width=25,
-            height=2,
-            bg="#d8e8ff",
-            command=self.choose_frista_executable,
-        )
-        self.choose_frista_button.grid(row=3, column=0, columnspan=2, padx=8, pady=(6, 2))
+        # self.choose_frista_button = tk.Button(
+        #     action_frame,
+        #     text="Pilih Frista...",
+        #     font=("Helvetica", 12, "bold"),
+        #     width=25,
+        #     height=2,
+        #     bg="#d8e8ff",
+        #     command=self.choose_frista_executable,
+        # )
+        # self.choose_frista_button.grid(row=3, column=0, columnspan=2, padx=8, pady=(6, 2))
 
         loading_label = tk.Label(
             self.root,
