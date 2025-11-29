@@ -2,12 +2,11 @@
 import subprocess
 import threading
 import tkinter as tk
-from tkinter import messagebox
+from tkinter import filedialog, messagebox
 import sys
 from pathlib import Path
 
-from app import bpjs, database, network
-from app.config import CHECKIN_URL, CHROME_EXECUTABLE
+from app import bpjs, config, database, frista, network
 
 
 class PatientApp:
@@ -39,6 +38,8 @@ class PatientApp:
         self.no_rm_var = tk.StringVar()
         self.loading_var = tk.StringVar(value="")
         self._keypad_buttons: list[tk.Button] = []
+
+        self._create_menu()
 
         self._build_inputs()
         self._build_status()
@@ -171,6 +172,28 @@ class PatientApp:
         )
         self.open_checkin_portal_button.grid(row=1, column=0, columnspan=2, padx=8, pady=(6, 2))
 
+        self.open_frista_button = tk.Button(
+            action_frame,
+            text="Buka Frista",
+            font=("Helvetica", 12, "bold"),
+            width=25,
+            height=2,
+            bg="#e8d2ff",
+            command=self.open_frista_application,
+        )
+        self.open_frista_button.grid(row=2, column=0, columnspan=2, padx=8, pady=(6, 2))
+
+        # self.choose_frista_button = tk.Button(
+        #     action_frame,
+        #     text="Pilih Frista...",
+        #     font=("Helvetica", 12, "bold"),
+        #     width=25,
+        #     height=2,
+        #     bg="#d8e8ff",
+        #     command=self.choose_frista_executable,
+        # )
+        # self.choose_frista_button.grid(row=3, column=0, columnspan=2, padx=8, pady=(6, 2))
+
         loading_label = tk.Label(
             self.root,
             textvariable=self.loading_var,
@@ -249,33 +272,51 @@ class PatientApp:
         self._run_bpjs_action(lambda: bpjs.open_bpjs_for_identifier(identifier), "Membuka aplikasi BPJS...")
 
     def open_checkin_portal(self):
-        self._run_bpjs_action(self._launch_checkin_portal, "Membuka sistem pendaftaran...")
+        self._run_action(self._launch_checkin_portal, "Membuka sistem pendaftaran...")
+
+    def open_frista_application(self):
+        identifier = self.no_rm_var.get().strip()
+        if not identifier:
+            messagebox.showwarning("Input Error", "Masukkan NIK atau identitas pasien terlebih dahulu.")
+            return
+
+        self._run_action(
+            lambda: frista.open_frista_for_identifier(identifier),
+            "Membuka Frista...",
+            frista.handle_automation_error,
+        )
 
     def _launch_checkin_portal(self):
         window_position = f"--window-position={self.half_screen_width},0"
         window_size = f"--window-size={self.half_screen_width},{self.screen_height}"
         subprocess.Popen(
             [
-                CHROME_EXECUTABLE,
+                config.CHROME_EXECUTABLE,
                 window_position,
                 window_size,
                 "--new-window",
-                CHECKIN_URL,
+                config.CHECKIN_URL,
             ]
         )
 
-    def _run_bpjs_action(self, action, message: str):
+    def _run_action(self, action, message: str, on_error=None):
         self._set_loading_state(True, message)
 
         def task():
             try:
                 action()
             except Exception as error:  # noqa: BLE001
-                bpjs.handle_automation_error(error)
+                if on_error:
+                    on_error(error)
+                else:
+                    messagebox.showerror("Error", f"Terjadi kesalahan: {error}")
             finally:
                 self.root.after(0, lambda: self._set_loading_state(False))
 
         threading.Thread(target=task, daemon=True).start()
+
+    def _run_bpjs_action(self, action, message: str):
+        self._run_action(action, message, bpjs.handle_automation_error)
 
     def _set_loading_state(self, is_loading: bool, message: str | None = None):
         if is_loading:
@@ -288,6 +329,8 @@ class PatientApp:
         self.search_button.config(state=state)
         self.open_bpjs_button.config(state=state)
         self.open_checkin_portal_button.config(state=state)
+        self.open_frista_button.config(state=state)
+        self.choose_frista_button.config(state=state)
         for button in self._keypad_buttons:
             button.config(state=state)
         self.root.update_idletasks()
@@ -305,3 +348,119 @@ class PatientApp:
     def _clear_input(self):
         self.no_rm_var.set("")
         self.no_rm_entry.icursor(tk.END)
+
+    def _create_menu(self):
+        menubar = tk.Menu(self.root)
+        config_menu = tk.Menu(menubar, tearoff=0)
+        config_menu.add_command(label="Pengaturan...", command=self._open_config_dialog)
+        menubar.add_cascade(label="Config", menu=config_menu)
+        self.root.config(menu=menubar)
+        self._menubar = menubar
+
+    def _open_config_dialog(self):
+        dialog = tk.Toplevel(self.root)
+        dialog.title("Pengaturan")
+        dialog.transient(self.root)
+        dialog.grab_set()
+
+        entries = {
+            "BPJS Executable": tk.StringVar(value=config.BPJS_EXECUTABLE),
+            "BPJS Username": tk.StringVar(value=config.BPJS_USERNAME),
+            "BPJS Password": tk.StringVar(value=config.BPJS_PASSWORD),
+            "Chrome Executable": tk.StringVar(value=config.CHROME_EXECUTABLE),
+            "URL Sistem Pendaftaran": tk.StringVar(value=config.CHECKIN_URL),
+            "Frista Executable": tk.StringVar(value=config.FRISTA_EXECUTABLE),
+            "Frista Username": tk.StringVar(value=config.FRISTA_USERNAME),
+            "Frista Password": tk.StringVar(value=config.FRISTA_PASSWORD),
+        }
+
+        content = tk.Frame(dialog, padx=10, pady=10)
+        content.pack(fill=tk.BOTH, expand=True)
+
+        def _initial_dir_from(var: tk.StringVar) -> Path:
+            try:
+                candidate = Path(var.get()).expanduser()
+                if candidate.is_file():
+                    return candidate.parent
+                if candidate.exists():
+                    return candidate
+            except OSError:
+                pass
+            return Path.home()
+
+        def _clean_path(value: str) -> str:
+            return value.replace("\\\\", "\\").strip()
+
+        def choose_file(var: tk.StringVar):
+            initial_dir = _initial_dir_from(var)
+            selected = filedialog.askopenfilename(
+                initialdir=str(initial_dir),
+                filetypes=[("Executable", "*.exe"), ("All Files", "*.*")],
+            )
+            if selected:
+                var.set(_clean_path(selected))
+
+        for index, (label_text, var) in enumerate(entries.items()):
+            label = tk.Label(content, text=label_text, anchor="w")
+            label.grid(row=index, column=0, sticky="w", pady=4, padx=(0, 8))
+
+            entry_frame = tk.Frame(content)
+            entry_frame.grid(row=index, column=1, sticky="we", pady=4)
+            entry_frame.grid_columnconfigure(0, weight=1)
+
+            entry = tk.Entry(entry_frame, textvariable=var, width=55)
+            entry.grid(row=0, column=0, sticky="we")
+
+            if label_text in {"BPJS Executable", "Chrome Executable", "Frista Executable"}:
+                browse_button = tk.Button(
+                    entry_frame,
+                    text="Browse...",
+                    command=lambda v=var: choose_file(v),
+                    width=10,
+                )
+                browse_button.grid(row=0, column=1, padx=(6, 0))
+
+        button_frame = tk.Frame(content)
+        button_frame.grid(row=len(entries), column=0, columnspan=2, pady=(12, 0))
+
+        def save_config():
+            config.BPJS_EXECUTABLE = _clean_path(entries["BPJS Executable"].get())
+            config.BPJS_USERNAME = entries["BPJS Username"].get()
+            config.BPJS_PASSWORD = entries["BPJS Password"].get()
+            config.CHROME_EXECUTABLE = _clean_path(entries["Chrome Executable"].get())
+            config.CHECKIN_URL = entries["URL Sistem Pendaftaran"].get()
+            config.FRISTA_EXECUTABLE = _clean_path(entries["Frista Executable"].get())
+            config.FRISTA_USERNAME = entries["Frista Username"].get()
+            config.FRISTA_PASSWORD = entries["Frista Password"].get()
+            messagebox.showinfo("Pengaturan", "Konfigurasi berhasil diperbarui.")
+            dialog.destroy()
+
+        save_button = tk.Button(button_frame, text="Simpan", command=save_config, width=12)
+        save_button.pack(side=tk.LEFT, padx=6)
+
+        close_button = tk.Button(button_frame, text="Tutup", command=dialog.destroy, width=12)
+        close_button.pack(side=tk.LEFT, padx=6)
+
+    def choose_frista_executable(self):
+        def _initial_dir_from(value: str) -> Path:
+            try:
+                candidate = Path(value).expanduser()
+                if candidate.is_file():
+                    return candidate.parent
+                if candidate.exists():
+                    return candidate
+            except OSError:
+                pass
+            return Path.home()
+
+        def _clean_path(path_value: str) -> str:
+            return path_value.replace("\\\\", "\\").strip()
+
+        initial_dir = _initial_dir_from(config.FRISTA_EXECUTABLE)
+        selected = filedialog.askopenfilename(
+            initialdir=str(initial_dir),
+            filetypes=[("Executable", "*.exe"), ("All Files", "*.*")],
+        )
+        if selected:
+            config.FRISTA_EXECUTABLE = _clean_path(selected)
+            messagebox.showinfo("Pengaturan Diperbarui", "Lokasi Frista berhasil dipilih.")

@@ -5,15 +5,7 @@ from typing import Optional
 import pyautogui
 from tkinter import messagebox
 
-from app import database
-from app.config import (
-    BPJS_EXECUTABLE,
-    BPJS_PASSWORD,
-    BPJS_USERNAME,
-    FORM_FILL_DELAY_SECONDS,
-    LOGIN_DELAY_SECONDS,
-    POST_LOGIN_DELAY_SECONDS,
-)
+from app import config, database
 
 
 class BpjsAutomationError(Exception):
@@ -21,17 +13,17 @@ class BpjsAutomationError(Exception):
 
 
 def _launch_application():
-    subprocess.Popen([BPJS_EXECUTABLE])
+    subprocess.Popen([config.BPJS_EXECUTABLE])
     pyautogui.sleep(1.5)
 
 
 def _login():
-    pyautogui.sleep(LOGIN_DELAY_SECONDS)
-    pyautogui.write(BPJS_USERNAME)
+    pyautogui.sleep(config.LOGIN_DELAY_SECONDS)
+    pyautogui.write(config.BPJS_USERNAME)
     pyautogui.press("tab")
-    pyautogui.write(BPJS_PASSWORD)
+    pyautogui.write(config.BPJS_PASSWORD)
     pyautogui.press("enter")
-    pyautogui.sleep(POST_LOGIN_DELAY_SECONDS)
+    pyautogui.sleep(config.POST_LOGIN_DELAY_SECONDS)
     pyautogui.press("enter")
 
 
@@ -46,7 +38,7 @@ def _fill_member_id(member_id: str):
         pyautogui.press("tab")
     pyautogui.press("space")
     pyautogui.write(member_id)
-    pyautogui.sleep(FORM_FILL_DELAY_SECONDS)
+    pyautogui.sleep(config.FORM_FILL_DELAY_SECONDS)
     pyautogui.hotkey("alt", "f4")
 
 
@@ -64,7 +56,7 @@ def _fill_registration_details(registration: Optional[tuple], patient: Optional[
             pyautogui.press("tab")
             pyautogui.press("space")
             pyautogui.write(patient[36])
-    pyautogui.sleep(FORM_FILL_DELAY_SECONDS)
+    pyautogui.sleep(config.FORM_FILL_DELAY_SECONDS)
     pyautogui.hotkey("alt", "f4")
 
 
