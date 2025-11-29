@@ -330,7 +330,7 @@ class PatientApp:
         self.open_bpjs_button.config(state=state)
         self.open_checkin_portal_button.config(state=state)
         self.open_frista_button.config(state=state)
-        self.choose_frista_button.config(state=state)
+        # self.choose_frista_button.config(state=state)
         for button in self._keypad_buttons:
             button.config(state=state)
         self.root.update_idletasks()

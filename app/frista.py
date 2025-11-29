@@ -22,7 +22,7 @@ def open_frista_for_identifier(identifier: str):
     except FileNotFoundError as exc:
         raise FristaAutomationError("Executable Frista tidak ditemukan.") from exc
 
-    pyautogui.sleep(10)
+    pyautogui.sleep(6)
     pyautogui.write(config.FRISTA_USERNAME)
     pyautogui.press("tab")
     pyautogui.write(config.FRISTA_PASSWORD)
