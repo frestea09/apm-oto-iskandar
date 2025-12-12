@@ -424,14 +424,23 @@ class PatientApp:
         button_frame.grid(row=len(entries), column=0, columnspan=2, pady=(12, 0))
 
         def save_config():
-            config.BPJS_EXECUTABLE = _clean_path(entries["BPJS Executable"].get())
-            config.BPJS_USERNAME = entries["BPJS Username"].get()
-            config.BPJS_PASSWORD = entries["BPJS Password"].get()
-            config.CHROME_EXECUTABLE = _clean_path(entries["Chrome Executable"].get())
-            config.CHECKIN_URL = entries["URL Sistem Pendaftaran"].get()
-            config.FRISTA_EXECUTABLE = _clean_path(entries["Frista Executable"].get())
-            config.FRISTA_USERNAME = entries["Frista Username"].get()
-            config.FRISTA_PASSWORD = entries["Frista Password"].get()
+            updated_settings = {
+                "BPJS_EXECUTABLE": _clean_path(entries["BPJS Executable"].get()),
+                "BPJS_USERNAME": entries["BPJS Username"].get(),
+                "BPJS_PASSWORD": entries["BPJS Password"].get(),
+                "CHROME_EXECUTABLE": _clean_path(entries["Chrome Executable"].get()),
+                "CHECKIN_URL": entries["URL Sistem Pendaftaran"].get(),
+                "FRISTA_EXECUTABLE": _clean_path(entries["Frista Executable"].get()),
+                "FRISTA_USERNAME": entries["Frista Username"].get(),
+                "FRISTA_PASSWORD": entries["Frista Password"].get(),
+            }
+
+            try:
+                config.save_user_settings(updated_settings)
+            except OSError as error:  # noqa: BLE001
+                messagebox.showerror("Pengaturan", f"Gagal menyimpan konfigurasi: {error}")
+                return
+
             messagebox.showinfo("Pengaturan", "Konfigurasi berhasil diperbarui.")
             dialog.destroy()
 
