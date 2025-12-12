@@ -1,8 +1,24 @@
 """Central configuration for database and BPJS automation."""
 
 import json
+import sys
 from pathlib import Path
 from typing import Dict
+
+def _config_root() -> Path:
+    """Lokasi penyimpanan konfigurasi yang bisa ditulis.
+
+    Saat dijalankan sebagai executable (PyInstaller/py2exe) folder yang dipakai
+    adalah direktori executable, bukan direktori bundle sementara yang tidak
+    bisa ditulis. Ketika dikembangkan dari sumber, gunakan folder module.
+    """
+
+    if getattr(sys, "frozen", False):
+        return Path(sys.executable).resolve().parent
+    return Path(__file__).resolve().parent
+
+
+CONFIG_FILE_PATH = _config_root() / "user_config.json"
 
 # DB_AUTH_PLUGIN = os.environ.get("APM_DB_AUTH_PLUGIN", "mysql_native_password")
 DB_AUTH_PLUGIN = "caching_sha2_password"
@@ -16,8 +32,6 @@ DB_CONFIG = {
     # Gunakan env APM_DB_AUTH_PLUGIN="caching_sha2_password" bila server sudah default plugin baru
     "auth_plugin": DB_AUTH_PLUGIN,
 }
-
-CONFIG_FILE_PATH = Path(__file__).resolve().parent / "user_config.json"
 
 DEFAULT_SETTINGS = {
     "BPJS_EXECUTABLE": r"C:\\Program Files (x86)\\BPJS Kesehatan\\Aplikasi Sidik Jari BPJS Kesehatan\\After.exe",
@@ -48,6 +62,7 @@ def _load_user_settings() -> Dict[str, str | float]:
 
 
 def _persist_settings(settings: Dict[str, str | float]) -> None:
+    CONFIG_FILE_PATH.parent.mkdir(parents=True, exist_ok=True)
     CONFIG_FILE_PATH.write_text(
         json.dumps(settings, indent=2),
         encoding="utf-8",
