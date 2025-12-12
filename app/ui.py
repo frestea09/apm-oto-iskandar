@@ -357,7 +357,52 @@ class PatientApp:
         self.root.config(menu=menubar)
         self._menubar = menubar
 
+    def _prompt_admin_login(self) -> bool:
+        dialog = tk.Toplevel(self.root)
+        dialog.title("Autentikasi Admin")
+        dialog.transient(self.root)
+        dialog.grab_set()
+
+        content = tk.Frame(dialog, padx=12, pady=12)
+        content.pack(fill=tk.BOTH, expand=True)
+
+        tk.Label(content, text="Username").grid(row=0, column=0, sticky="w", pady=4, padx=(0, 8))
+        username_var = tk.StringVar()
+        username_entry = tk.Entry(content, textvariable=username_var, width=30)
+        username_entry.grid(row=0, column=1, pady=4, sticky="we")
+
+        tk.Label(content, text="Password").grid(row=1, column=0, sticky="w", pady=4, padx=(0, 8))
+        password_var = tk.StringVar()
+        password_entry = tk.Entry(content, textvariable=password_var, width=30, show="*")
+        password_entry.grid(row=1, column=1, pady=4, sticky="we")
+
+        result = {"ok": False}
+
+        def submit():
+            if username_var.get().strip() == "admin" and password_var.get() == "123456":
+                result["ok"] = True
+                dialog.destroy()
+            else:
+                messagebox.showerror("Autentikasi", "Username atau password salah.")
+
+        button_frame = tk.Frame(content)
+        button_frame.grid(row=2, column=0, columnspan=2, pady=(10, 0))
+
+        submit_button = tk.Button(button_frame, text="Masuk", command=submit, width=12)
+        submit_button.pack(side=tk.LEFT, padx=6)
+
+        close_button = tk.Button(button_frame, text="Batal", command=dialog.destroy, width=12)
+        close_button.pack(side=tk.LEFT, padx=6)
+
+        dialog.bind("<Return>", lambda _event: submit())
+        username_entry.focus_set()
+        dialog.wait_window()
+        return result["ok"]
+
     def _open_config_dialog(self):
+        if not self._prompt_admin_login():
+            return
+
         dialog = tk.Toplevel(self.root)
         dialog.title("Pengaturan")
         dialog.transient(self.root)
@@ -424,14 +469,23 @@ class PatientApp:
         button_frame.grid(row=len(entries), column=0, columnspan=2, pady=(12, 0))
 
         def save_config():
-            config.BPJS_EXECUTABLE = _clean_path(entries["BPJS Executable"].get())
-            config.BPJS_USERNAME = entries["BPJS Username"].get()
-            config.BPJS_PASSWORD = entries["BPJS Password"].get()
-            config.CHROME_EXECUTABLE = _clean_path(entries["Chrome Executable"].get())
-            config.CHECKIN_URL = entries["URL Sistem Pendaftaran"].get()
-            config.FRISTA_EXECUTABLE = _clean_path(entries["Frista Executable"].get())
-            config.FRISTA_USERNAME = entries["Frista Username"].get()
-            config.FRISTA_PASSWORD = entries["Frista Password"].get()
+            updated_settings = {
+                "BPJS_EXECUTABLE": _clean_path(entries["BPJS Executable"].get()),
+                "BPJS_USERNAME": entries["BPJS Username"].get(),
+                "BPJS_PASSWORD": entries["BPJS Password"].get(),
+                "CHROME_EXECUTABLE": _clean_path(entries["Chrome Executable"].get()),
+                "CHECKIN_URL": entries["URL Sistem Pendaftaran"].get(),
+                "FRISTA_EXECUTABLE": _clean_path(entries["Frista Executable"].get()),
+                "FRISTA_USERNAME": entries["Frista Username"].get(),
+                "FRISTA_PASSWORD": entries["Frista Password"].get(),
+            }
+
+            try:
+                config.save_user_settings(updated_settings)
+            except OSError as error:  # noqa: BLE001
+                messagebox.showerror("Pengaturan", f"Gagal menyimpan konfigurasi: {error}")
+                return
+
             messagebox.showinfo("Pengaturan", "Konfigurasi berhasil diperbarui.")
             dialog.destroy()
 
