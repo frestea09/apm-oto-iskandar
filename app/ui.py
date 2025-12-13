@@ -137,51 +137,41 @@ class PatientApp:
             keypad_frame.grid_columnconfigure(column_index, weight=1)
 
         action_frame = tk.Frame(self.root, bg="#ffffff")
-        action_frame.pack(pady=12)
+        action_frame.pack(pady=16, fill=tk.X)
 
-        self.search_button = tk.Button(
-            action_frame,
-            text="Cari Data Pasien",
-            font=("Helvetica", 12, "bold"),
-            width=25,
-            height=2,
-            bg="#d9f2ff",
-            command=self.search_patient,
-        )
-        self.search_button.grid(row=0, column=0, padx=8, pady=6)
+        button_opts = {
+            "font": ("Helvetica", 13, "bold"),
+            "width": 30,
+            "height": 3,
+            "anchor": "center",
+        }
 
         self.open_bpjs_button = tk.Button(
             action_frame,
             text="Buka Check-In BPJS",
-            font=("Helvetica", 12, "bold"),
-            width=25,
-            height=2,
             bg="#c8f7c5",
             command=self.open_bpjs_by_identifier,
+            **button_opts,
         )
-        self.open_bpjs_button.grid(row=0, column=1, padx=8, pady=6)
+        self.open_bpjs_button.pack(padx=8, pady=6, fill=tk.X)
 
         self.open_checkin_portal_button = tk.Button(
             action_frame,
             text="Buka Sistem Pendaftaran",
-            font=("Helvetica", 12, "bold"),
-            width=25,
-            height=2,
             bg="#fff2b2",
             command=self.open_checkin_portal,
+            **button_opts,
         )
-        self.open_checkin_portal_button.grid(row=1, column=0, columnspan=2, padx=8, pady=(6, 2))
+        self.open_checkin_portal_button.pack(padx=8, pady=6, fill=tk.X)
 
         self.open_frista_button = tk.Button(
             action_frame,
             text="Buka Frista",
-            font=("Helvetica", 12, "bold"),
-            width=25,
-            height=2,
             bg="#e8d2ff",
             command=self.open_frista_application,
+            **button_opts,
         )
-        self.open_frista_button.grid(row=2, column=0, columnspan=2, padx=8, pady=(6, 2))
+        self.open_frista_button.pack(padx=8, pady=6, fill=tk.X)
 
         # self.choose_frista_button = tk.Button(
         #     action_frame,
@@ -326,7 +316,6 @@ class PatientApp:
             self.loading_var.set("")
 
         state = tk.DISABLED if is_loading else tk.NORMAL
-        self.search_button.config(state=state)
         self.open_bpjs_button.config(state=state)
         self.open_checkin_portal_button.config(state=state)
         self.open_frista_button.config(state=state)
@@ -412,11 +401,14 @@ class PatientApp:
             "BPJS Executable": tk.StringVar(value=config.BPJS_EXECUTABLE),
             "BPJS Username": tk.StringVar(value=config.BPJS_USERNAME),
             "BPJS Password": tk.StringVar(value=config.BPJS_PASSWORD),
+            "Standby BPJS Setelah Login (detik)": tk.StringVar(value=str(config.BPJS_STANDBY_SECONDS)),
             "Chrome Executable": tk.StringVar(value=config.CHROME_EXECUTABLE),
             "URL Sistem Pendaftaran": tk.StringVar(value=config.CHECKIN_URL),
             "Frista Executable": tk.StringVar(value=config.FRISTA_EXECUTABLE),
             "Frista Username": tk.StringVar(value=config.FRISTA_USERNAME),
             "Frista Password": tk.StringVar(value=config.FRISTA_PASSWORD),
+            "Standby Frista Setelah Login (detik)": tk.StringVar(value=str(config.FRISTA_STANDBY_SECONDS)),
+            "Penundaan Login Frista (detik)": tk.StringVar(value=str(config.FRISTA_LOGIN_DELAY_SECONDS)),
         }
 
         content = tk.Frame(dialog, padx=10, pady=10)
@@ -469,16 +461,26 @@ class PatientApp:
         button_frame.grid(row=len(entries), column=0, columnspan=2, pady=(12, 0))
 
         def save_config():
-            updated_settings = {
-                "BPJS_EXECUTABLE": _clean_path(entries["BPJS Executable"].get()),
-                "BPJS_USERNAME": entries["BPJS Username"].get(),
-                "BPJS_PASSWORD": entries["BPJS Password"].get(),
-                "CHROME_EXECUTABLE": _clean_path(entries["Chrome Executable"].get()),
-                "CHECKIN_URL": entries["URL Sistem Pendaftaran"].get(),
-                "FRISTA_EXECUTABLE": _clean_path(entries["Frista Executable"].get()),
-                "FRISTA_USERNAME": entries["Frista Username"].get(),
-                "FRISTA_PASSWORD": entries["Frista Password"].get(),
-            }
+            try:
+                updated_settings = {
+                    "BPJS_EXECUTABLE": _clean_path(entries["BPJS Executable"].get()),
+                    "BPJS_USERNAME": entries["BPJS Username"].get(),
+                    "BPJS_PASSWORD": entries["BPJS Password"].get(),
+                    "BPJS_STANDBY_SECONDS": float(entries["Standby BPJS Setelah Login (detik)"].get()),
+                    "CHROME_EXECUTABLE": _clean_path(entries["Chrome Executable"].get()),
+                    "CHECKIN_URL": entries["URL Sistem Pendaftaran"].get(),
+                    "FRISTA_EXECUTABLE": _clean_path(entries["Frista Executable"].get()),
+                    "FRISTA_USERNAME": entries["Frista Username"].get(),
+                    "FRISTA_PASSWORD": entries["Frista Password"].get(),
+                    "FRISTA_STANDBY_SECONDS": float(entries["Standby Frista Setelah Login (detik)"].get()),
+                    "FRISTA_LOGIN_DELAY_SECONDS": float(entries["Penundaan Login Frista (detik)"].get()),
+                }
+            except ValueError:
+                messagebox.showerror(
+                    "Pengaturan",
+                    "Masukkan angka yang valid untuk pengaturan durasi standby atau penundaan login.",
+                )
+                return
 
             try:
                 config.save_user_settings(updated_settings)

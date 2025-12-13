@@ -25,6 +25,7 @@ def _login():
     pyautogui.press("enter")
     pyautogui.sleep(config.POST_LOGIN_DELAY_SECONDS)
     pyautogui.press("enter")
+    pyautogui.sleep(config.BPJS_STANDBY_SECONDS)
 
 
 def _focus_window():
