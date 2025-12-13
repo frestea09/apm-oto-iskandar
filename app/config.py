@@ -39,13 +39,15 @@ DEFAULT_SETTINGS = {
     "BPJS_PASSWORD": "#Bandung28",
     "LOGIN_DELAY_SECONDS": 0.8,
     "POST_LOGIN_DELAY_SECONDS": 0.6,
+    "BPJS_STANDBY_SECONDS": 3.0,
     "FORM_FILL_DELAY_SECONDS": 2.5,
     "CHROME_EXECUTABLE": r"C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
     "CHECKIN_URL": "http://172.168.1.175:8070",
     "FRISTA_EXECUTABLE": r"C:\\Users\\ilman\\Documents\\Frista\\Frista.exe",
     "FRISTA_USERNAME": "1002r006th",
     "FRISTA_PASSWORD": "#Bandung28",
-    "FRISTA_LOGIN_DELAY_SECONDS": 1.2,
+    "FRISTA_LOGIN_DELAY_SECONDS": 6.0,
+    "FRISTA_STANDBY_SECONDS": 3.0,
 }
 
 
@@ -83,6 +85,7 @@ def _apply_settings(settings: Dict[str, str | float]) -> None:
     global BPJS_PASSWORD
     global LOGIN_DELAY_SECONDS
     global POST_LOGIN_DELAY_SECONDS
+    global BPJS_STANDBY_SECONDS
     global FORM_FILL_DELAY_SECONDS
     global CHROME_EXECUTABLE
     global CHECKIN_URL
@@ -90,12 +93,14 @@ def _apply_settings(settings: Dict[str, str | float]) -> None:
     global FRISTA_USERNAME
     global FRISTA_PASSWORD
     global FRISTA_LOGIN_DELAY_SECONDS
+    global FRISTA_STANDBY_SECONDS
 
     BPJS_EXECUTABLE = settings["BPJS_EXECUTABLE"]
     BPJS_USERNAME = settings["BPJS_USERNAME"]
     BPJS_PASSWORD = settings["BPJS_PASSWORD"]
     LOGIN_DELAY_SECONDS = float(settings["LOGIN_DELAY_SECONDS"])
     POST_LOGIN_DELAY_SECONDS = float(settings["POST_LOGIN_DELAY_SECONDS"])
+    BPJS_STANDBY_SECONDS = float(settings["BPJS_STANDBY_SECONDS"])
     FORM_FILL_DELAY_SECONDS = float(settings["FORM_FILL_DELAY_SECONDS"])
     CHROME_EXECUTABLE = settings["CHROME_EXECUTABLE"]
     CHECKIN_URL = settings["CHECKIN_URL"]
@@ -103,6 +108,7 @@ def _apply_settings(settings: Dict[str, str | float]) -> None:
     FRISTA_USERNAME = settings["FRISTA_USERNAME"]
     FRISTA_PASSWORD = settings["FRISTA_PASSWORD"]
     FRISTA_LOGIN_DELAY_SECONDS = float(settings["FRISTA_LOGIN_DELAY_SECONDS"])
+    FRISTA_STANDBY_SECONDS = float(settings["FRISTA_STANDBY_SECONDS"])
 
 
 _apply_settings(_load_user_settings())
