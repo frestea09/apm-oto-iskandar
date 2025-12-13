@@ -148,7 +148,7 @@ class PatientApp:
 
         self.open_bpjs_button = tk.Button(
             action_frame,
-            text="Buka Check-In BPJS",
+            text="Fingerprint BPJS",
             bg="#c8f7c5",
             command=self.open_bpjs_by_identifier,
             **button_opts,
@@ -157,7 +157,7 @@ class PatientApp:
 
         self.open_checkin_portal_button = tk.Button(
             action_frame,
-            text="Buka Sistem Pendaftaran",
+            text="Sistem Pendaftaran",
             bg="#fff2b2",
             command=self.open_checkin_portal,
             **button_opts,
@@ -166,7 +166,7 @@ class PatientApp:
 
         self.open_frista_button = tk.Button(
             action_frame,
-            text="Buka Frista",
+            text="Frista",
             bg="#e8d2ff",
             command=self.open_frista_application,
             **button_opts,

@@ -1,0 +1,16 @@
+{
+  "BPJS_EXECUTABLE": "C:/Program Files (x86)/BPJS Kesehatan/Aplikasi Sidik Jari BPJS Kesehatan/After.exe",
+  "BPJS_USERNAME": "1002r006th",
+  "BPJS_PASSWORD": "#Bandung28",
+  "LOGIN_DELAY_SECONDS": 0.8,
+  "POST_LOGIN_DELAY_SECONDS": 0.6,
+  "BPJS_STANDBY_SECONDS": 3.0,
+  "FORM_FILL_DELAY_SECONDS": 2.5,
+  "CHROME_EXECUTABLE": "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+  "CHECKIN_URL": "http://172.168.1.175:8070",
+  "FRISTA_EXECUTABLE": "D:/frista.v.3.0.1/frista.exe",
+  "FRISTA_USERNAME": "1002r006th",
+  "FRISTA_PASSWORD": "#Bandung28",
+  "FRISTA_LOGIN_DELAY_SECONDS": 6.0,
+  "FRISTA_STANDBY_SECONDS": 3.0
+}

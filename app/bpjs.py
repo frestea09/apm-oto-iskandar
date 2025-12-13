@@ -58,6 +58,7 @@ def _fill_registration_details(registration: Optional[tuple], patient: Optional[
             pyautogui.press("space")
             pyautogui.write(patient[36])
     pyautogui.sleep(config.FORM_FILL_DELAY_SECONDS)
+    pyautogui.sleep(5.0)
     pyautogui.hotkey("alt", "f4")
 
 
