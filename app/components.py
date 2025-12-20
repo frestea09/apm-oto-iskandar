@@ -3,9 +3,9 @@
 import tkinter as tk
 
 
-def create_keypad(root: tk.Tk, append_digit, clear_input, delete_last):
-    keypad_frame = tk.Frame(root, bg="#ffffff")
-    keypad_frame.pack(pady=5)
+def create_keypad(parent: tk.Frame, append_digit, clear_input, delete_last):
+    keypad_frame = tk.Frame(parent, bg="#ffffff")
+    keypad_frame.pack(pady=5, fill=tk.BOTH, expand=True)
 
     buttons: list[tk.Button] = []
     keypad_layout = [
@@ -44,20 +44,25 @@ def create_keypad(root: tk.Tk, append_digit, clear_input, delete_last):
     return buttons
 
 
-def create_action_buttons(root: tk.Tk, on_bpjs, on_portal, on_frista):
-    action_frame = tk.Frame(root, bg="#ffffff")
-    action_frame.pack(pady=16, fill=tk.X)
+def create_action_buttons(parent: tk.Frame, on_bpjs, on_portal, on_frista, on_sep):
+    action_frame = tk.Frame(parent, bg="#ffffff")
+    action_frame.pack(pady=16, fill=tk.BOTH, expand=True)
+    action_frame.columnconfigure(0, weight=1)
 
-    button_opts = {"font": ("Helvetica", 13, "bold"), "width": 30, "height": 3, "anchor": "center"}
+    button_opts = {"font": ("Helvetica", 13, "bold"), "height": 3, "anchor": "center"}
 
-    bpjs_button = tk.Button(action_frame, text="Fingerprint BPJS", bg="#c8f7c5", command=on_bpjs, **button_opts)
-    bpjs_button.pack(padx=8, pady=6, fill=tk.X)
+    bpjs_button = tk.Button(
+        action_frame, text="Fingerprint BPJS", bg="#c8f7c5", command=on_bpjs, **button_opts, width=1
+    )
+    bpjs_button.grid(row=0, column=0, padx=8, pady=6, sticky="ew")
 
     portal_button = tk.Button(
-        action_frame, text="Sistem Pendaftaran", bg="#fff2b2", command=on_portal, **button_opts
+        action_frame, text="Sistem Pendaftaran", bg="#fff2b2", command=on_portal, **button_opts, width=1
     )
-    portal_button.pack(padx=8, pady=6, fill=tk.X)
+    portal_button.grid(row=1, column=0, padx=8, pady=6, sticky="ew")
 
-    frista_button = tk.Button(action_frame, text="Frista", bg="#e8d2ff", command=on_frista, **button_opts)
-    frista_button.pack(padx=8, pady=6, fill=tk.X)
-    return bpjs_button, portal_button, frista_button
+    frista_button = tk.Button(action_frame, text="Frista", bg="#e8d2ff", command=on_frista, **button_opts, width=1)
+    frista_button.grid(row=2, column=0, padx=8, pady=6, sticky="ew")
+    sep_button = tk.Button(action_frame, text="Cetak SEP", bg="#cde4ff", command=on_sep, **button_opts, width=1)
+    sep_button.grid(row=3, column=0, padx=8, pady=6, sticky="ew")
+    return bpjs_button, portal_button, frista_button, sep_button

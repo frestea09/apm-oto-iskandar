@@ -1,5 +1,6 @@
 """Database helpers for patient lookup."""
 from contextlib import contextmanager
+from datetime import date, datetime
 import logging
 from pathlib import Path
 from typing import Iterable, Optional, Tuple
@@ -14,6 +15,9 @@ from app.config import DB_CONFIG
 
 PatientRow = Tuple
 RegistrationRow = Tuple
+
+REGISTRATION_NO_RM_INDEX = 5
+REGISTRATION_DATE_INDEX = 13
 
 ERROR_LOG_PATH = Path.home() / "apm_db_errors.log"
 
@@ -114,3 +118,83 @@ def fetch_registration_by_bpjs(bpjs_number: str) -> Optional[RegistrationRow]:
 def fetch_patient_by_bpjs(bpjs_number: str) -> Optional[PatientRow]:
     """Fetch a patient record by BPJS card number."""
     return fetch_one("SELECT * FROM pasiens WHERE no_jkn = %s", (bpjs_number,))
+
+
+def fetch_patient_by_identifier(identifier: str) -> Optional[PatientRow]:
+    """Return the patient matching No RM, NIK, or nomor BPJS (latest priority order)."""
+
+    patient = fetch_patient_by_no_rm(identifier)
+    if patient:
+        return patient
+
+    if len(identifier) == 16 and identifier.isdigit():
+        patient = fetch_patient_by_nik(identifier)
+        if patient:
+            return patient
+
+    return fetch_patient_by_bpjs(identifier)
+
+
+def fetch_latest_booking(identifier: str) -> Optional[Tuple[str, str, int]]:
+    """
+    Return the latest booking info (nomorantrian, no_rm, id) for the provided identifier.
+
+    The identifier can be No RM, NIK (16 digit), or nomor BPJS. The query prioritizes No RM,
+    then NIK, then BPJS number.
+    """
+
+    query = (
+        "SELECT nomorantrian, no_rm, id FROM registrasis_dummy "
+        "WHERE {field} = %s ORDER BY id DESC LIMIT 1"
+    )
+
+    # Try No RM first
+    booking = fetch_one(query.format(field="no_rm"), (identifier,))
+    if booking:
+        return booking
+
+    # If identifier looks like NIK (16 numeric digits), try NIK
+    if len(identifier) == 16 and identifier.isdigit():
+        booking = fetch_one(query.format(field="nik"), (identifier,))
+        if booking:
+            return booking
+
+    # Finally, try BPJS card number
+    return fetch_one(query.format(field="nomorkartu"), (identifier,))
+
+
+def fetch_latest_registration(identifier: str) -> Optional[RegistrationRow]:
+    """
+    Return the latest registration row (entire tuple) matching No RM, NIK, or nomor BPJS.
+    """
+
+    registration = fetch_registration_by_no_rm(identifier)
+    if registration:
+        return registration
+
+    if len(identifier) == 16 and identifier.isdigit():
+        registration = fetch_registration_by_nik(identifier)
+        if registration:
+            return registration
+
+    return fetch_registration_by_bpjs(identifier)
+
+
+def extract_registration_date(registration: RegistrationRow) -> Optional[date]:
+    """Extract the visit date from a registration row, normalized to a date object."""
+
+    if not registration or len(registration) <= REGISTRATION_DATE_INDEX:
+        return None
+
+    raw_date = registration[REGISTRATION_DATE_INDEX]
+    if isinstance(raw_date, datetime):
+        return raw_date.date()
+    if isinstance(raw_date, date):
+        return raw_date
+    if isinstance(raw_date, str) and raw_date:
+        for fmt in ("%Y-%m-%d", "%Y-%m-%d %H:%M:%S"):
+            try:
+                return datetime.strptime(raw_date, fmt).date()
+            except ValueError:
+                continue
+    return None

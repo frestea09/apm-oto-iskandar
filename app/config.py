@@ -43,6 +43,8 @@ DEFAULT_SETTINGS = {
     "FORM_FILL_DELAY_SECONDS": 2.5,
     "CHROME_EXECUTABLE": r"C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
     "CHECKIN_URL": "http://172.168.1.175:8070",
+    "SEP_CHECK_URL": "http://172.168.1.175:8070/reservasi/cek",
+    "SEP_BASE_URL": "http://172.168.1.175:8070",
     "FRISTA_EXECUTABLE": r"C:\\Users\\ilman\\Documents\\Frista\\Frista.exe",
     "FRISTA_USERNAME": "1002r006th",
     "FRISTA_PASSWORD": "#Bandung28",
@@ -89,6 +91,8 @@ def _apply_settings(settings: Dict[str, str | float]) -> None:
     global FORM_FILL_DELAY_SECONDS
     global CHROME_EXECUTABLE
     global CHECKIN_URL
+    global SEP_CHECK_URL
+    global SEP_BASE_URL
     global FRISTA_EXECUTABLE
     global FRISTA_USERNAME
     global FRISTA_PASSWORD
@@ -104,6 +108,8 @@ def _apply_settings(settings: Dict[str, str | float]) -> None:
     FORM_FILL_DELAY_SECONDS = float(settings["FORM_FILL_DELAY_SECONDS"])
     CHROME_EXECUTABLE = settings["CHROME_EXECUTABLE"]
     CHECKIN_URL = settings["CHECKIN_URL"]
+    SEP_CHECK_URL = settings["SEP_CHECK_URL"]
+    SEP_BASE_URL = settings["SEP_BASE_URL"]
     FRISTA_EXECUTABLE = settings["FRISTA_EXECUTABLE"]
     FRISTA_USERNAME = settings["FRISTA_USERNAME"]
     FRISTA_PASSWORD = settings["FRISTA_PASSWORD"]
